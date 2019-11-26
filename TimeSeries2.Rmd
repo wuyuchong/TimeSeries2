@@ -9,12 +9,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Work with git
 
-```{console, eval=FALSE}
+```{terminal, eval=FALSE}
 # sync with the latest version
-# run this two lines of code in console
+# run this two lines of code in terminal
 git fetch upstream
 git merge upstream/master
 ```
+
+# Import data
 
 ```{r}
 data = read.csv("B3_HWA2.csv", stringsAsFactors = FALSE)
