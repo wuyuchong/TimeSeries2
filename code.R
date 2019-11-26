@@ -16,8 +16,9 @@ y_3 <- as.ts(datm[ , 5])
 y_4 <- as.ts(datm[ , 6])
 y_5 <- as.ts(datm[ , 7])
 
-# Plots
 
+##################################################
+#IDENTIFICATION
 ## Y1 - ARMA(1,1)?
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
@@ -58,106 +59,138 @@ acf(y_5, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(y_5, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
+
+
+######################################
 ## Estimation
 E <- as.ts(datm$E)
 
-## removing residuals from fitted model
 ### Y1
-?arima
+#Guess: ARMA(11)
 m1 <- arima(y_1, order = c(1, 0, 1))
 summary(m1)
-sigma2 <- m1$sigma2
+sigma21 <- m1$sigma2
 E1 <- residuals(m1)
 
+### Y1
+#Guess: AR(2)
+m11 <- arima(y_1, order = c(2, 0, 0))
+summary(m11)
+sigma211 <- m11$sigma2
+E11 <- residuals(m11)
+
 ### Y2
-?arima
+#GUESS: AR(1)
 m2 <- arima(y_2, order = c(1, 0 , 0))
 summary(m2)
-sigma2 <- m2$sigma2
+sigma22 <- m2$sigma2
 E2 <- residuals(m2)
 
 ### Y3
-?arima
+#GUESS: MA(2)
 m3 <- arima(y_3, order = c(0, 0 , 2))
 summary(m3)
-sigma2 <- m3$sigma2
+sigma23 <- m3$sigma2
 E3 <- residuals(m3)
 
 ### Y4
-?arima
+#GUESS: (AR(2))
 m4 <- arima(y_4, order = c(2, 0 , 0))
 summary(m4)
-sigma2 <- m4$sigma2
+sigma24 <- m4$sigma2
 E4 <- residuals(m4)
 
 ### Y5
-?arima
+#GUESS: ARMA(11)
 m5 <- arima(y_5, order = c(1, 0 , 1))
 summary(m5)
-sigma2 <- m5$sigma2
+sigma25 <- m5$sigma2
 E5 <- residuals(m5)
 
-# Splitting plots again
 
+############################################################
+#Diagnosis
 ## Y1
+#GUESS ARMA(11)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(E1, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y1")
 abline(a = mean(E1), b = 0) # adds horizontal line with mean(E1) as intercept and 0 slope
-abline(a = mean(E1) + sigma2, b = 0, lty="dotted") # same as above + sigma2
-abline(a = mean(E1) - sigma2, b = 0, lty="dotted") # same as above - sigma2
+abline(a = mean(E1) + sigma21, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E1) - sigma21, b = 0, lty="dotted") # same as above - sigma2
 
 acf(E1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
+## Y1
+#GUESS AR(2)
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(E11, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y1")
+abline(a = mean(E11), b = 0) # adds horizontal line with mean(E1) as intercept and 0 slope
+abline(a = mean(E11) + sigma211, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E11) - sigma211, b = 0, lty="dotted") # same as above - sigma2
+acf(E11, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(E11, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+
+
 ## Y2
+#GUESS AR(1)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(E2, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y2")
 abline(a = mean(E2), b = 0) # adds horizontal line with mean(E2) as intercept and 0 slope
-abline(a = mean(E2) + sigma2, b = 0, lty="dotted") # same as above + sigma2
-abline(a = mean(E2) - sigma2, b = 0, lty="dotted") # same as above - sigma2
+abline(a = mean(E2) + sigma22, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E2) - sigma22, b = 0, lty="dotted") # same as above - sigma2
 
 acf(E2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
 ## Y3
+#Guess MA(1)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(E3, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y3")
 abline(a = mean(E3), b = 0) # adds horizontal line with mean(E3) as intercept and 0 slope
-abline(a = mean(E3) + sigma2, b = 0, lty="dotted") # same as above + sigma2
-abline(a = mean(E3) - sigma2, b = 0, lty="dotted") # same as above - sigma2
+abline(a = mean(E3) + sigma23, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E3) - sigma23, b = 0, lty="dotted") # same as above - sigma2
 
 acf(E3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
 ## Y4
+#GUESS AR(2)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(E4, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y4")
 abline(a = mean(E4), b = 0) # adds horizontal line with mean(E4) as intercept and 0 slope
-abline(a = mean(E4) + sigma2, b = 0, lty="dotted") # same as above + sigma2
-abline(a = mean(E4) - sigma2, b = 0, lty="dotted") # same as above - sigma2
+abline(a = mean(E4) + sigma24, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E4) - sigma24, b = 0, lty="dotted") # same as above - sigma2
 
 acf(E4, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E4, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
 ## Y5
+#GUESS ARMA(1,1)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(E5, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y5")
 abline(a = mean(E5), b = 0) # adds horizontal line with mean(E5) as intercept and 0 slope
-abline(a = mean(E5) + sigma2, b = 0, lty="dotted") # same as above + sigma2
-abline(a = mean(E5) - sigma2, b = 0, lty="dotted") # same as above - sigma2
+abline(a = mean(E5) + sigma25, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E5) - sigma25, b = 0, lty="dotted") # same as above - sigma2
 
 acf(E5, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E5, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
+
+
+
+
 
 ### For testing auto correlations, why is t = 0 included? Not the case in 
 # eviews. What does it mean? Check with Lars
@@ -168,6 +201,8 @@ e4_acf <- acf(E4, lag.max = 20, type = "correlation", plot = F)
 e5_acf <- acf(E5, lag.max = 20, type = "correlation", plot = F) 
 
 
+
+########################################################################
 ### Forecasting
 # use the predict function. The object parameter is the model from before
 # and n.ahead gives number of time periods to forecast
