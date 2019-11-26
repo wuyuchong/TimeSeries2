@@ -16,3 +16,8 @@ git fetch upstream
 git merge upstream/master
 ```
 
+```{r}
+data = read.csv("B3_HWA2.csv", stringsAsFactors = FALSE)
+data
+```
+
