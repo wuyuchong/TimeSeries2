@@ -16,7 +16,7 @@ git fetch upstream
 git merge upstream/master
 ```
 
-# Import data
+# Imported data
 
 ```{r}
 dat = read.csv("B3_HWA2.csv", stringsAsFactors = FALSE)
@@ -28,109 +28,19 @@ datm <- dat[1:400, ] # subset 400 first rows of dat, include all columns
 datf <- dat[401:404, ] # subset last 4 rows of dat, include all columns
 
 # process 1-5
-y_1 <- as.ts(datm[ , 3])
-y_2 <- as.ts(datm[ , 4])
-y_3 <- as.ts(datm[ , 5])
-y_4 <- as.ts(datm[ , 6])
-y_5 <- as.ts(datm[ , 7])
+Y1 <- as.ts(datm[ , 3])
+Y2 <- as.ts(datm[ , 4])
+Y3 <- as.ts(datm[ , 5])
+Y4 <- as.ts(datm[ , 6])
+Y5 <- as.ts(datm[ , 7])
 
 ```
 
-####################################################################
-
-```{r}
-# Plots
-
-## Y1 - ARMA(1,1)?
-layout(matrix(c(1, 1, 2,
-                1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(y_1, main = "Time Series Y1") # time series plot
-acf(y_1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(y_1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
-par(mfrow = c(1,1)) # set plot window to default
-
-## Y2 - AR(1)
-layout(matrix(c(1, 1, 2,
-                1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(y_2, main = "Time Series Y2") # time series plot
-acf(y_2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(y_2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
-par(mfrow = c(1,1)) # set plot window to default
-
-## Y3 - MA(2)
-layout(matrix(c(1, 1, 2,
-                1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(y_3, main = "Time Series Y3") # time series plot
-acf(y_3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(y_3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
-par(mfrow = c(1,1)) # set plot window to default
-
-## Y4 - AR(2)
-layout(matrix(c(1, 1, 2,
-                1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(y_4, main = "Time Series Y4") # time series plot
-acf(y_4, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(y_4, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
-par(mfrow = c(1,1)) # set plot window to default
-
-## Y5 - AR(1,1)?
-layout(matrix(c(1, 1, 2,
-                1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(y_5, main = "Time Series Y5") # time series plot
-acf(y_5, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(y_5, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
-par(mfrow = c(1,1)) # set plot window to default
-```
-
-
-####################################################################
 
 ```{r}
 ## Estimation
 E <- as.ts(datm$E)
 
-## removing residuals from fitted model
-### Y1
-?arima
-m1 <- arima(y_1, order = c(1, 0, 1))
-summary(m1)
-sigma21 <- m1$sigma2
-E1 <- residuals(m1)
-
-### Y2
-?arima
-m2 <- arima(y_2, order = c(1, 0 , 0))
-summary(m2)
-sigma22 <- m2$sigma2
-E2 <- residuals(m2)
-
-### Y3
-?arima
-m3 <- arima(y_3, order = c(0, 0 , 2))
-summary(m3)
-sigma23 <- m3$sigma2
-E3 <- residuals(m3)
-
-### Y4
-?arima
-m4 <- arima(y_4, order = c(2, 0 , 0))
-summary(m4)
-sigma24 <- m4$sigma2
-E4 <- residuals(m4)
-
-### Y5
-?arima
-m5 <- arima(y_5, order = c(1, 0 , 1))
-summary(m5)
-sigma25 <- m5$sigma2
-E5 <- residuals(m5)
-
-```
-
-
-####################################################################
-
-```{r}
 # Splitting plots again
 
 ## Y1
@@ -169,29 +79,6 @@ acf(E3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
-## Y4
-layout(matrix(c(1, 1, 2,
-                1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(E4, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y4")
-abline(a = mean(E4), b = 0) # adds horizonta2l line with mean(E4) as intercept and 0 slope
-abline(a = mean(E4) + sigma24, b = 0, lty="dotted") # same as above + sigma2
-abline(a = mean(E4) - sigma24, b = 0, lty="dotted") # same as above - sigma2
-
-acf(E4, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(E4, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
-par(mfrow = c(1,1)) # set plot window to default
-
-## Y5
-layout(matrix(c(1, 1, 2,
-                1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(E5, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y5")
-abline(a = mean(E5), b = 0) # adds horizontal line with mean(E5) as intercept and 0 slope
-abline(a = mean(E5) + sigma25, b = 0, lty="dotted") # same as above + sigma2
-abline(a = mean(E5) - sigma25, b = 0, lty="dotted") # same as above - sigma2
-
-acf(E5, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(E5, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
-par(mfrow = c(1,1)) # set plot window to default
 ```
 
 ```{r}
@@ -200,75 +87,55 @@ par(mfrow = c(1,1)) # set plot window to default
 e1_acf <- acf(E1, lag.max = 20, type = "correlation", plot = F) 
 e2_acf <- acf(E2, lag.max = 20, type = "correlation", plot = F) 
 e3_acf <- acf(E3, lag.max = 20, type = "correlation", plot = F) 
-e4_acf <- acf(E4, lag.max = 20, type = "correlation", plot = F) 
-e5_acf <- acf(E5, lag.max = 20, type = "correlation", plot = F) 
+
 ```
 
-
-####################################################################
 
 ```{r}
 ### Forecasting
 # use the predict function. The object parameter is the model from before
 # and n.ahead gives number of time periods to forecast
-y_1_pred <- predict(object = m1, n.ahead = 4)
-y_2_pred <- predict(object = m2, n.ahead = 4)
-y_3_pred <- predict(object = m3, n.ahead = 4)
-y_4_pred <- predict(object = m4, n.ahead = 4)
-y_5_pred <- predict(object = m5, n.ahead = 4)
+Y1_pred <- predict(object = m1, n.ahead = 4)
+Y2_pred <- predict(object = m2, n.ahead = 4)
+Y3_pred <- predict(object = m3, n.ahead = 4)
 
 # we can submit more than one time series to the ts.plot() function. In this case
 # i add, apart from  predicted y, predicty y +- se of prediction
 
 ### Predicted Y1
-ts.plot(y_1_pred$pred, y_1_pred$pred + y_1_pred$se, 
-        y_1_pred$pred - y_1_pred$se, ylab = "Predicted Y", 
+ts.plot(Y1_pred$pred, Y1_pred$pred + Y1_pred$se, 
+        Y1_pred$pred - Y1_pred$se, ylab = "Predicted Y", 
         main = expression(paste("Predicted ", Y['1'])), # we can use mathematical notation in r plots!
         lty=c(1:3),
         col = c("blue", "black", "black"))
 
 ### Predicted Y2
-ts.plot(y_2_pred$pred, y_2_pred$pred + y_2_pred$se, 
-        y_2_pred$pred - y_2_pred$se, ylab = "Predicted Y", 
+ts.plot(Y2_pred$pred, Y2_pred$pred + Y2_pred$se, 
+        Y2_pred$pred - Y2_pred$se, ylab = "Predicted Y", 
         main = expression(paste("Predicted ", Y['2'])), # we can use mathematical notation in r plots!
         lty=c(1:3),
         col = c("blue", "black", "black"))
 
 ### Predicted Y3
-ts.plot(y_3_pred$pred, y_3_pred$pred + y_3_pred$se, 
-        y_3_pred$pred - y_3_pred$se, ylab = "Predicted Y", 
+ts.plot(Y3_pred$pred, Y3_pred$pred + Y3_pred$se, 
+        Y3_pred$pred - Y3_pred$se, ylab = "Predicted Y", 
         main = expression(paste("Predicted ", Y['3'])), # we can use mathematical notation in r plots!
         lty=c(1:3),
         col = c("blue", "black", "black"))
 
-### Predicted Y4
-ts.plot(y_4_pred$pred, y_4_pred$pred + y_4_pred$se, 
-        y_4_pred$pred - y_4_pred$se, ylab = "Predicted Y", 
-        main = expression(paste("Predicted ", Y['4'])), # we can use mathematical notation in r plots!
-        lty=c(1:3),
-        col = c("blue", "black", "black"))
-
-### Predicted Y5
-ts.plot(y_5_pred$pred, y_5_pred$pred + y_5_pred$se, 
-        y_5_pred$pred - y_5_pred$se, ylab = "Predicted Y", 
-        main = expression(paste("Predicted ", Y['5'])), # we can use mathematical notation in r plots!
-        lty=c(1:3),
-        col = c("blue", "black", "black"))
 ```
 
 
-####################################################################
-
 ```{r}
 # compare fitted and actual
-ts.plot(datf$Y1, y_1_pred$pred, col = c("red", "blue"))
+ts.plot(datf$Y1, Y1_pred$pred, col = c("red", "blue"))
 # x & y need to be adjusted manually. A good idea is to take min(x) and add 1 as x - coordinate
 # and max y remove 1 as y coordinate. Then fine tune 
 legend(x = 401, y = 2, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
 
 ### need some measurements of the forecast
 y1 <- as.vector(dat$Y1[401:404]) # no real need for these to be time series objects...
-y1_hat <- as.vector(y_1_pred$pred) # ... so just store them as your plain vanilla vectors :)
+y1_hat <- as.vector(Y1_pred$pred) # ... so just store them as your plain vanilla vectors :)
 
 # RMSEA
 sqrt(mean((y1-y1_hat)^2))
@@ -282,3 +149,302 @@ for(i in 1:4) {
 100*mean(abs((y1-y1_hat)/y1))
 ```
 
+## Task 1
+
+### Y1
+
+```{r}
+## Y1 - ARMA(1,1)?
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(Y1, main = "Time Series Y1") # time series plot
+acf(Y1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(Y1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+```
+
+```{r}
+
+## removing residuals from fitted model
+
+### Y1
+?arima
+m1 <- arima(Y1, order = c(1, 0, 1))
+sigma21 <- m1$sigma2
+E1 <- residuals(m1)
+```
+
+
+### Y2
+
+```{r}
+## Y2 - AR(1)
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(Y2, main = "Time Series Y2") # time series plot
+acf(Y2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(Y2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+```
+
+```{r}
+
+## removing residuals from fitted model
+
+### Y2
+?arima
+m2 <- arima(Y2, order = c(1, 0 , 0))
+sigma22 <- m2$sigma2
+E2 <- residuals(m2)
+```
+
+
+### Y3
+
+```{r}
+## Y3 - MA(2)
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(Y3, main = "Time Series Y3") # time series plot
+acf(Y3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(Y3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+```
+
+```{r}
+
+## removing residuals from fitted model
+
+### Y3
+?arima
+m3 <- arima(Y3, order = c(0, 0 , 2))
+sigma23 <- m3$sigma2
+E3 <- residuals(m3)
+```
+
+
+### Y4
+
+Here we are going to analyze the dataset Y4. As with the other datasets, we will use the Box-Jenkins approach.
+
+#### Indentification
+
+```{r}
+## Y4 - AR(2)
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(Y4, main = "Time Series Y4") # time series plot
+acf(Y4, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(Y4, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+
+```
+
+Looking at our model, we can see that it looks centered around zero. It  looks fairly consistent in mean and variance. The ACF seems to be declining in a geometric fashion. The PACF has two "fingers". This leads us to suspect this is a AR-process of the second order, or AR(2).
+
+#### Estimation
+
+```{r}
+m4
+```
+We estimate the parameters for the AR(2) process:
+
+$$\phi_{1} = -0.282$$
+$$\phi_{2} = 0.568$$
+$$Var(\phi_{1}) = Var(\phi_{2}) = (0.041)^2$$
+$$\sigma^2 = 0.9271$$
+
+#### Evaluation
+
+We begin by extracting the residuals. When we have done this we plot the residuals to check if the model has managed to capture the systematic variation.
+
+```{r}
+### Y4
+?arima
+m4 <- arima(Y4, order = c(2,0,0))
+sigma24 <- m4$sigma2
+E4 <- residuals(m4)
+```
+
+
+```{r}
+## Y4
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(E4, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y4")
+abline(a = mean(E4), b = 0) # adds horizonta2l line with mean(E4) as intercept and 0 slope
+abline(a = mean(E4) + sigma24, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E4) - sigma24, b = 0, lty="dotted") # same as above - sigma2
+
+acf(E4, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(E4, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+
+```
+
+The plot of the residuals looks like white noise, with no pattern or trend. Both the ACF and PACF are equal to zero, which they should be since the residuals are randomness. Does, it seems like we have managed to separate the systematic and random variation.
+
+```{r}
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(Y4, E4, ylab = "Residuals", col = c("red","black"), main = "Residuals from Fitted Model Y4")
+abline(a = mean(E4), b = 0) # adds horizonta2l line with mean(E4) as intercept and 0 slope
+abline(a = mean(E4) + sigma24, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E4) - sigma24, b = 0, lty="dotted") # same as above - sigma2
+```
+
+Here we can see the plot of Y4 in red, with the plot for the residuals superimposed on top, in black. We can see that the residuals does not share the same patterns and trends as the plot for Y4.
+
+```{r}
+qqnorm(E4)
+```
+
+The QQ-plot looks to follow the theoretical values fairly well.
+
+```{r}
+(e4_acf <- acf(E4, lag.max = 20, type = "correlation", plot = F)) 
+```
+
+```{r}
+Box.test(E4, type="Ljung-Box")
+```
+
+#### Forecast
+
+```{r}
+(y_4_pred <- predict(object = m4, n.ahead = 4))
+```
+
+```{r}
+### Predicted Y4
+ts.plot(y_4_pred$pred, y_4_pred$pred + y_4_pred$se, 
+        y_4_pred$pred - y_4_pred$se, ylab = "Predicted Y", 
+        main = expression(paste("Predicted ", Y['4'])), # we can use mathematical notation in r plots!
+        lty=c(1:3),
+        col = c("blue", "black", "black"))
+
+```
+
+```{r}
+# compare fitted and actual
+ts.plot(datf$Y4, y_4_pred$pred, col = c("red", "blue"))
+# x & y need to be adjusted manually. A good idea is to take min(x) and add 1 as x - coordinate
+# and max y remove 1 as y coordinate. Then fine tune 
+legend(x = 401, y =1.5, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
+
+```
+
+
+```{r}
+### need some measurements of the forecast
+Y4 <- as.vector(dat$Y4[401:404]) # no real need for these to be time series objects...
+Y4_hat <- as.vector(y_4_pred$pred) # ... so just store them as your plain vanilla vectors :)
+
+# RMSEA
+sqrt(mean((Y4-Y4_hat)^2))
+# MAE 
+mean(abs(Y4-Y4_hat))
+# MAPE, not exactly sure whether n = 4 or 404 in the calculations
+mape <- 0
+for(i in 1:4) {
+  mape <- mape + abs((Y4[i] - Y4_hat[i])/Y4[i])
+}
+100*mean(abs((Y4-Y4_hat)/Y4))
+```
+
+
+### Y5
+
+```{r}
+## Y5 - AR(1,1)?
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(Y5, main = "Time Series Y5") # time series plot
+acf(Y5, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(Y5, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+
+```
+
+```{r}
+
+## removing residuals from fitted model
+
+### Y5
+?arima
+m5 <- arima(Y5, order = c(2, 0 , 3))
+sigma25 <- m5$sigma2
+E5 <- residuals(m5)
+
+```
+
+```{r}
+m5
+```
+
+
+```{r}
+## Y5
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(E5, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Model Y5")
+abline(a = mean(E5), b = 0) # adds horizontal line with mean(E5) as intercept and 0 slope
+abline(a = mean(E5) + sigma25, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E5) - sigma25, b = 0, lty="dotted") # same as above - sigma2
+
+acf(E5, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(E5, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+
+```
+
+```{r}
+qqnorm(E5)
+```
+
+```{r}
+(e5_acf <- acf(E5, lag.max = 20, type = "correlation", plot = F))
+
+Box.test(E5, lag = 20)
+```
+
+
+```{r}
+(Y5_pred <- predict(object = m5, n.ahead = 4))
+```
+
+```{r}
+### Predicted Y5
+ts.plot(Y5_pred$pred, Y5_pred$pred + Y5_pred$se, 
+        Y5_pred$pred - Y5_pred$se, ylab = "Predicted Y", 
+        main = expression(paste("Predicted ", Y['5'])), # we can use mathematical notation in r plots!
+        lty=c(1:3),
+        col = c("blue", "black", "black"))
+
+```
+
+```{r}
+# compare fitted and actual
+ts.plot(datf$Y5, Y5_pred$pred, col = c("red", "blue"))
+# x & y need to be adjusted manually. A good idea is to take min(x) and add 1 as x - coordinate
+# and max y remove 1 as y coordinate. Then fine tune 
+legend(x = 404-.7, y = min(Y5) + .8, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
+
+```
+
+```{r}
+### need some measurements of the forecast
+Y5 <- as.vector(dat$Y5[401:404]) # no real need for these to be time series objects...
+Y5_hat <- as.vector(Y5_pred$pred) # ... so just store them as your plain vanilla vectors :)
+
+# RMSEA
+sqrt(mean((Y5-Y5_hat)^2))
+# MAE 
+mean(abs(Y5-Y5_hat))
+# MAPE, not exactly sure whether n = 4 or 404 in the calculations
+mape <- 0
+for(i in 1:4) {
+  mape <- mape + abs((Y5[i] - Y5_hat[i])/Y5[i])
+}
+100*mean(abs((Y5-Y5_hat)/Y5))
+```
