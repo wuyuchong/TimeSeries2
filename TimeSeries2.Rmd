@@ -5,23 +5,29 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(tidyverse)
 ```
 
 # Work with git
 
 ```{terminal, eval=FALSE}
 # sync with the latest version
-# run this two lines of code in terminal
+# Everytime before you start working, please sync with the latest version first.
+# run this two lines of code in terminal line by line (seperately)
+
 git fetch upstream
 git merge upstream/master
+
+# Then please read the message which will be sent back
 ```
 
 # Imported data
 
 ```{r}
 dat = read.csv("B3_HWA2.csv", stringsAsFactors = FALSE)
-dat
 ```
+
 ```{r}
 # we want 400, and leave 4 out for forecasting
 datm <- dat[1:400, ] # subset 400 first rows of dat, include all columns
@@ -446,5 +452,197 @@ mape <- 0
 for(i in 1:4) {
   mape <- mape + abs((Y5[i] - Y5_hat[i])/Y5[i])
 }
+
 100*mean(abs((Y5-Y5_hat)/Y5))
 ```
+
+
+100*mean(abs((y1-y1_hat)/y1))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Task 2
+
+## Import dataset
+
+We download the dataset containing quarterly bilateral exchange rate between EU and other currency.
+
+```{r}
+dat = read.table(file = "ert_bil_eur_q.tsv", sep = '\t', header = TRUE)
+kable(dat[65:70, 1:5], caption = "Quarterly bilateral exchange rate", digits = 2)
+```
+
+And then we only use the quarterly bilateral exchange rate between EU and SEK.
+
+```{r}
+dat = dat %>% 
+  filter(statinfo.unit.currency.time == "END,NAC,SEK") %>% 
+  select(-statinfo.unit.currency.time)
+kable(dat[,1:9], caption = "Quarterly bilateral exchange rate between EU and SEK (Head 9)", digits = 2)
+dat = t(dat)
+y = dat[,1]
+y = as.numeric(y)
+y = y[!is.na(y)]
+```
+
+We "save" 5 observations for forecast evaluation.
+
+```{r}
+y_m = y[1:175]
+y_f = y[176:181]
+```
+
+The first step that is to determine what type of process that generated my observed 190 observations.
+
+## Identify the model
+
+```{r}
+# split up plot window
+layout(matrix(c(1, 1, 2,
+1, 1, 3), nrow=2, byrow=TRUE))
+ts.plot(y_m, main = "Time Series") # time series plot, plot 1 in matrix argument
+acf(y_m, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF, plot 2 in matrix argument
+acf(y_m, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF, plot 3 in matrix argument
+```
+
+
+## Estimate the model
+
+## Do the diagnostics
+
+## Forecast
+
+
+
+
