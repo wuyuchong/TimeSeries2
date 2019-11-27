@@ -19,7 +19,8 @@ y_5 <- as.ts(datm[ , 7])
 
 ##################################################
 #IDENTIFICATION
-## Y1 - ARMA(1,1)?
+## Y1
+#GUESS: ARMA(1,1), AR(2)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(y_1, main = "Time Series Y1") # time series plot
@@ -27,7 +28,8 @@ acf(y_1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(y_1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
-## Y2 - AR(1)
+## Y2
+#GUESS AR(1)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(y_2, main = "Time Series Y2") # time series plot
@@ -35,7 +37,8 @@ acf(y_2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(y_2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
-## Y3 - MA(2)
+## Y3
+#GUESS MA(2)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(y_3, main = "Time Series Y3") # time series plot
@@ -43,7 +46,8 @@ acf(y_3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(y_3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
-## Y4 - AR(2)
+## Y4
+#GUESS AR(2)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(y_4, main = "Time Series Y4") # time series plot
@@ -51,7 +55,8 @@ acf(y_4, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(y_4, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
-## Y5 - AR(1,1)?
+## Y5
+#GUESS AR(1,1)?
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
 ts.plot(y_5, main = "Time Series Y5") # time series plot
