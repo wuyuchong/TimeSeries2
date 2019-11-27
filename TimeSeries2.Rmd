@@ -5,23 +5,26 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
 ```
 
 # Work with git
 
 ```{terminal, eval=FALSE}
 # sync with the latest version
-# run this two lines of code in terminal
+# run this two lines of code in terminal line by line (seperately)
 git fetch upstream
 git merge upstream/master
+
+# Then please read the message which will be sent back
 ```
 
 # Import data
 
 ```{r}
 dat = read.csv("B3_HWA2.csv", stringsAsFactors = FALSE)
-dat
 ```
+
 ```{r}
 # we want 400, and leave 4 out for forecasting
 datm <- dat[1:400, ] # subset 400 first rows of dat, include all columns
@@ -281,4 +284,164 @@ for(i in 1:4) {
 }
 100*mean(abs((y1-y1_hat)/y1))
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Task 2
+
+We use the dataset containing quaterly bilateral exchange rate between EU and SEK.
+
+
+```{r}
+dat = read.table(file = "ert_bil_eur_q.tsv", sep = '\t', header = TRUE)
+kable(dat[65:70, 1:5], caption = "Quaterly bilateral exchange rate", digits = 2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
