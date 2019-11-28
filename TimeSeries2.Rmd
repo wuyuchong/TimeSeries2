@@ -4,9 +4,10 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
 library(knitr)
 library(tidyverse)
+library(aTSA)
 ```
 
 # Work with git
@@ -614,6 +615,7 @@ dat = t(dat)
 y = dat[,1]
 y = as.numeric(y)
 y = y[!is.na(y)]
+y = rev(y)
 ```
 
 We "save" 5 observations for forecast evaluation.
@@ -636,10 +638,40 @@ acf(y_m, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF, plot
 acf(y_m, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF, plot 3 in matrix argument
 ```
 
+Then we perform a test to detect if there is a unit root in the process or not, which is the Augmented Dickey-Fuller (ADF) (unit root) test.
+
+```{r}
+adf.test(y_m)
+```
+
+According to the outcome of the test, we **can not reject** the null hypothesis that of a unit root in the series under the significance level 0.05 since all the p values are larger than $\alpha$.
+
+To get discarded of the unit root we take the second difference of the time series. 
+
+```{r}
+y_m
+y_m_dif = diff(y_m)
+```
+
+```{r}
+layout(matrix(c(1, 1, 2,
+1, 1, 3), nrow=2, byrow=TRUE))
+ts.plot(y_m_dif, main = "Time Series") # time series plot, plot 1 in matrix argument
+acf(y_m_dif, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF, plot 2 in matrix argument
+acf(y_m_dif, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF, plot 3 in matrix argument
+```
 
 ## Estimate the model
 
+
+
 ## Do the diagnostics
+
+```{r}
+Box.test(y_m_dif, lag = 4)
+```
+
+To do the diagnostics, we perform a test that there is no correlation between the lags of the model, we which is a Ljung-Box test where the null hypothesis is that we have zero correlation between the residuals and the alternative hypothesis is that there is a correlation between the residuals. The observed p-value is far larger than $\alpha$ which implies that we cannot reject the null hypothesis and conclude that our model has **no autocorrelation** in its time lags under the significance level 0.05. The result from the Ljung-box test is 
 
 ## Forecast
 
