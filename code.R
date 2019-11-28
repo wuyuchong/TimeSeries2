@@ -20,6 +20,8 @@ y_5 <- as.ts(datm[ , 7])
 ##################################################
 #IDENTIFICATION
 ## Y1
+
+
 #GUESS: ARMA(1,1), AR(2)
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
@@ -27,6 +29,14 @@ ts.plot(y_1, main = "Time Series Y1") # time series plot
 acf(y_1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(y_1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
+#UNIT ROOT TEST?
+adf.test(y_1, nlag = NULL, output = TRUE)
+y_1_adf <- adf.test(y_1)
+Y1_adf
+Y1_adf$statistic
+Y1_adf$p.value
+Y1_adf$alternative
+
 
 ## Y2
 #GUESS AR(1)
@@ -77,6 +87,8 @@ summary(m1)
 sigma21 <- m1$sigma2
 E1 <- residuals(m1)
 
+
+
 ### Y1
 #Guess: AR(2)
 m11 <- arima(y_1, order = c(2, 0, 0))
@@ -123,10 +135,11 @@ ts.plot(E1, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Mode
 abline(a = mean(E1), b = 0) # adds horizontal line with mean(E1) as intercept and 0 slope
 abline(a = mean(E1) + sigma21, b = 0, lty="dotted") # same as above + sigma2
 abline(a = mean(E1) - sigma21, b = 0, lty="dotted") # same as above - sigma2
-
 acf(E1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
+#Normality?
+qqnorm(E1)
 
 ## Y1
 #GUESS AR(2)
@@ -140,6 +153,8 @@ acf(E11, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E11, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 
+#Normality?
+qqnorm(E11)
 
 ## Y2
 #GUESS AR(1)
@@ -200,18 +215,21 @@ par(mfrow = c(1,1)) # set plot window to default
 ### For testing auto correlations, why is t = 0 included? Not the case in 
 # eviews. What does it mean? Check with Lars
 e1_acf <- acf(E1, lag.max = 20, type = "correlation", plot = F) 
+e11_acf <- acf(E11, lag.max = 20, type = "correlation", plot = F)
 e2_acf <- acf(E2, lag.max = 20, type = "correlation", plot = F) 
 e3_acf <- acf(E3, lag.max = 20, type = "correlation", plot = F) 
 e4_acf <- acf(E4, lag.max = 20, type = "correlation", plot = F) 
 e5_acf <- acf(E5, lag.max = 20, type = "correlation", plot = F) 
 
-
+#Ljung BOX test
+Box.test(E11, lag = 20, type = c("Ljung-Box"), fitdf = 2)
+Box.test(E1, lag = 20, type = c("Ljung-Box"), fitdf = 2)
 
 ########################################################################
 ### Forecasting
 # use the predict function. The object parameter is the model from before
 # and n.ahead gives number of time periods to forecast
-y_1_pred <- predict(object = m1, n.ahead = 4)
+y_1_pred <- predict(object = m11, n.ahead = 4)
 y_2_pred <- predict(object = m2, n.ahead = 4)
 y_3_pred <- predict(object = m3, n.ahead = 4)
 y_4_pred <- predict(object = m4, n.ahead = 4)
