@@ -29,13 +29,6 @@ ts.plot(y_1, main = "Time Series Y1") # time series plot
 acf(y_1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(y_1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
-#UNIT ROOT TEST?
-adf.test(y_1, nlag = NULL, output = TRUE)
-y_1_adf <- adf.test(y_1)
-Y1_adf
-Y1_adf$statistic
-Y1_adf$p.value
-Y1_adf$alternative
 
 
 ## Y2
@@ -88,7 +81,6 @@ sigma21 <- m1$sigma2
 E1 <- residuals(m1)
 
 
-
 ### Y1
 #Guess: AR(2)
 m11 <- arima(y_1, order = c(2, 0, 0))
@@ -138,6 +130,9 @@ abline(a = mean(E1) - sigma21, b = 0, lty="dotted") # same as above - sigma2
 acf(E1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
+#COrrelated?
+Box.test(E1, lag = 20, type = c("Ljung-Box"), fitdf = 2)
+e1_acf <- acf(E1, lag.max = 20, type = "correlation", plot = F) 
 #Normality?
 qqnorm(E1)
 
@@ -152,8 +147,10 @@ abline(a = mean(E11) - sigma211, b = 0, lty="dotted") # same as above - sigma2
 acf(E11, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E11, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
-
-#Normality?
+#Correlated?
+e11_acf <- acf(E11, lag.max = 20, type = "correlation", plot = F)
+Box.test(E11, lag = 20, type = c("Ljung-Box"), fitdf = 2)
+#Normal?
 qqnorm(E11)
 
 ## Y2
@@ -164,10 +161,15 @@ ts.plot(E2, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Mode
 abline(a = mean(E2), b = 0) # adds horizontal line with mean(E2) as intercept and 0 slope
 abline(a = mean(E2) + sigma22, b = 0, lty="dotted") # same as above + sigma2
 abline(a = mean(E2) - sigma22, b = 0, lty="dotted") # same as above - sigma2
-
 acf(E2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
+#Correlated?
+e2_acf <- acf(E2, lag.max = 20, type = "correlation", plot = F)
+Box.test(E2, lag = 20, type = c("Ljung-Box"), fitdf = 1)
+#Normal?
+qqnorm(E2)
+
 
 ## Y3
 #Guess MA(1)
@@ -177,10 +179,15 @@ ts.plot(E3, ylab = "Residuals", col = "blue", main = "Residuals from Fitted Mode
 abline(a = mean(E3), b = 0) # adds horizontal line with mean(E3) as intercept and 0 slope
 abline(a = mean(E3) + sigma23, b = 0, lty="dotted") # same as above + sigma2
 abline(a = mean(E3) - sigma23, b = 0, lty="dotted") # same as above - sigma2
-
 acf(E3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(E3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
+#Correlated?
+e3_acf <- acf(E3, lag.max = 20, type = "correlation", plot = F)
+Box.test(E3, lag = 20, type = c("Ljung-Box"), fitdf = 1)
+#Normal?
+qqnorm(E3)
+
 
 ## Y4
 #GUESS AR(2)
@@ -210,30 +217,13 @@ par(mfrow = c(1,1)) # set plot window to default
 
 
 
-
-
-### For testing auto correlations, why is t = 0 included? Not the case in 
-# eviews. What does it mean? Check with Lars
-e1_acf <- acf(E1, lag.max = 20, type = "correlation", plot = F) 
-e11_acf <- acf(E11, lag.max = 20, type = "correlation", plot = F)
-e2_acf <- acf(E2, lag.max = 20, type = "correlation", plot = F) 
-e3_acf <- acf(E3, lag.max = 20, type = "correlation", plot = F) 
-e4_acf <- acf(E4, lag.max = 20, type = "correlation", plot = F) 
-e5_acf <- acf(E5, lag.max = 20, type = "correlation", plot = F) 
-
-#Ljung BOX test
-Box.test(E11, lag = 20, type = c("Ljung-Box"), fitdf = 2)
-Box.test(E1, lag = 20, type = c("Ljung-Box"), fitdf = 2)
-
 ########################################################################
 ### Forecasting
+
+#Y1, using AR(2)
 # use the predict function. The object parameter is the model from before
 # and n.ahead gives number of time periods to forecast
 y_1_pred <- predict(object = m11, n.ahead = 4)
-y_2_pred <- predict(object = m2, n.ahead = 4)
-y_3_pred <- predict(object = m3, n.ahead = 4)
-y_4_pred <- predict(object = m4, n.ahead = 4)
-y_5_pred <- predict(object = m5, n.ahead = 4)
 
 # we can submit more than one time series to the ts.plot() function. In this case
 # i add, apart from  predicted y, predicty y +- se of prediction
@@ -242,24 +232,95 @@ ts.plot(y_1_pred$pred, y_1_pred$pred + y_1_pred$se,
         main = expression(paste("Predicted ", Y['1'])), # we can use mathematical notation in r plots!
         lty=c(1:3),
         col = c("blue", "black", "black"))
-
 # compare fitted and actual
 ts.plot(datf$Y1, y_1_pred$pred, col = c("red", "blue"))
 # x & y need to be adjusted manually. A good idea is to take min(x) and add 1 as x - coordinate
 # and max y remove 1 as y coordinate. Then fine tune 
 legend(x = 401, y = 2, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
 
+#TABLE 1
 ### need some measurements of the forecast
 y1 <- as.vector(dat$Y1[401:404]) # no real need for these to be time series objects...
 y1_hat <- as.vector(y_1_pred$pred) # ... so just store them as your plain vanilla vectors :)
-
-# RMSEA
+#MSE
+(mean((y1-y1_hat)^2))
+# RMSE
 sqrt(mean((y1-y1_hat)^2))
-# MAE 
-mean(abs(y1-y1_hat))
-# MAPE, not exactly sure whether n = 4 or 404 in the calculations
+# MAPE
 mape <- 0
 for(i in 1:4) {
   mape <- mape + abs((y1[i] - y1_hat[i])/y1[i])
 }
 100*mean(abs((y1-y1_hat)/y1))
+
+
+#Y2, using AR(1)
+# use the predict function. The object parameter is the model from before
+# and n.ahead gives number of time periods to forecast
+y_2_pred <- predict(object = m2, n.ahead = 4)
+ts.plot(y_2_pred$pred, y_2_pred$pred + y_2_pred$se, 
+        y_2_pred$pred - y_2_pred$se, ylab = "Predicted Y", 
+        main = expression(paste("Predicted ", Y['2'])), # we can use mathematical notation in r plots!
+        lty=c(1:3),
+        col = c("blue", "black", "black"))
+# compare fitted and actual
+ts.plot(datf$Y2, y_2_pred$pred, col = c("red", "blue"))
+# x & y need to be adjusted manually. A good idea is to take min(x) and add 1 as x - coordinate
+# and max y remove 1 as y coordinate. Then fine tune 
+legend(x = 401, y = 2, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
+#TABLE 1
+y2 <- as.vector(dat$Y2[401:404]) # no real need for these to be time series objects...
+y2_hat <- as.vector(y_2_pred$pred) # ... so just store them as your plain vanilla vectors :)
+#MSE
+(mean((y2-y2_hat)^2))
+# RMSE
+sqrt(mean((y2-y2_hat)^2))
+# MAPE
+mape <- 0
+for(i in 1:4) {
+  mape <- mape + abs((y2[i] - y2_hat[i])/y2[i])
+}
+100*mean(abs((y2-y2_hat)/y2))
+
+
+
+#Y3
+y_3_pred <- predict(object = m3, n.ahead = 4)
+ts.plot(y_3_pred$pred, y_3_pred$pred + y_3_pred$se, 
+        y_3_pred$pred - y_3_pred$se, ylab = "Predicted Y", 
+        main = expression(paste("Predicted ", Y['3'])), # we can use mathematical notation in r plots!
+        lty=c(1:3),
+        col = c("blue", "black", "black"))
+# compare fitted and actual
+ts.plot(datf$Y3, y_3_pred$pred, col = c("red", "blue"))
+legend(x = 401, y = 2, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
+#TABLE 1
+y3 <- as.vector(dat$Y2[401:404]) # no real need for these to be time series objects...
+y3_hat <- as.vector(y_2_pred$pred) # ... so just store them as your plain vanilla vectors :)
+#MSE
+(mean((y3-y3_hat)^2))
+# RMSE
+sqrt(mean((y3-y3_hat)^2))
+# MAPE
+mape <- 0
+for(i in 1:4) {
+  mape <- mape + abs((y3[i] - y3_hat[i])/y3[i])
+}
+100*mean(abs((y3-y3_hat)/y3))
+
+
+
+
+
+
+
+
+
+
+
+
+#Y4-5 Correlation and prediction
+e4_acf <- acf(E4, lag.max = 20, type = "correlation", plot = F) 
+e5_acf <- acf(E5, lag.max = 20, type = "correlation", plot = F) 
+y_4_pred <- predict(object = m4, n.ahead = 4)
+y_5_pred <- predict(object = m5, n.ahead = 4)

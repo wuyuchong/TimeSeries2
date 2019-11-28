@@ -163,7 +163,7 @@ In Graph 1, the time series *Y1* is plotted. By inspection, there does not seem 
 
 ++++Graph 1++++++
 
-Some unit root processes do give rise to data that show no obvious trend, although the process indeed has a stochastic trend. In that case, the process is not covariance stationary, but rather *Difference Stationary*. Since we need the data to be covariance stationary in order to proceed, we must know whether this particular realization is a result of a unit root process. By inspection, it does not look like a unit root process, since such a process has an infinite memory. Hence, in case of a unit root process, we would little or no decline in the ACF.
+Some unit root processes do give rise to data that show no obvious trend, although the process indeed has a stochastic trend. In that case, the process is not covariance stationary, but rather *Difference Stationary*. Since we need the data to be covariance stationary in order to proceed to estimation of the model, we must know whether this particular realization is a result of a unit root process. By inspection, it does not look like a unit root process, since such a process has an infinite memory. Hence, in case of a unit root process, we would see little or no decline in the ACF.
 
 
 Several different processes might give rise to the realization seen in the time series plot in Graph 1. To find out more we turn instead to the ACF, where we see three significant spikes, which are decreasing geometrically. Combine this with the looks of the PACF, which has two significant spikes, and one can make a qualified guess which underlying process is generating the data here. It could be an AR(2), since that kind of process indeed has a geometrically decreasing ACF and 2 significant PACF spikes. However, it could also be an ARMA(1,1), if one rather interpretates the PACF as geometrically decreasing. Hence, we have two potentially true models, which we have to evaluate:
@@ -172,6 +172,7 @@ AR(2): $Y_1=\phi_0+\phi_1Y_{t-1}+\phi_2Y_{t-2}+e_t$
 ARMA(1,1) $Y_t=\phi_1Y_{t-1}+e_t-\theta_1e_{t-1}$
 
 In both these cases, the error term $e_t$ is independently and identically distributed with mean 0 and a constant variance.
+
 
 ####Estimation and evaluation of AR(2)
 All models is estimated using the maximum likelihood method.
@@ -198,11 +199,11 @@ When comparing this model with the ARMA(1,1) (which we soon will evaluate), one 
 
 ####Estimation and evaluation of ARMA(1,1)
 The realization in Graph 1 could perhaps be coming from an ARMA(1,1) process instead. To test this, we first estimate the model to be:
-ARMA(1,1) $Y_t=0.0045-0.478Y_{t-1}-0.30e_t+ ê_{t-1}$
+ARMA(1,1) $$Y_t=0.0045-0.478Y_{t-1}-0.30e_{t-1}+ ê_{t}$$
 
 COMMENT ON THE MODEL AND ON IT'S p-VALUES!
 
-Graph 3 shows the residual analysis. It is remarkably similar to the one using AR(2), in Graph 2. When performing a Ljung-Box test, we get the p-value 0.657. Hence, all autocorrelations are indeed not significant different from 0. COMMENT ON NORMALITY! Consequently, by just studying the time series plots and the autocorrelations, we cannot decide which one of the two models (AR(2) or ARMA(1,1)) that is preferable.
+Graph 3 shows the residual analysis, id est an analysis over $ê_{t}$. It is remarkably similar to the one using AR(2), in Graph 2. When performing a Ljung-Box test, we get the p-value 0.657. Hence, all autocorrelations are indeed not significant different from 0. COMMENT ON NORMALITY! Consequently, by just studying the time series plots and the autocorrelations, we cannot decide which one of the two models (AR(2) or ARMA(1,1)) that is preferable.
 
 ++++Graph 4++++
 
@@ -228,13 +229,7 @@ In Graph 6, we compare the predicted values with the actual, observed, observati
 
 +++++Graph 6++++++
 
-Calculate and discuss MSE, RMSE, MAPE, 
-Refer to "Table 1."
-
-
-
-
-
+To evaluate a forecast, there are several measures. The *Mean Square Error* (MSE) gives higher weights to outliers. To get the measure on the right scale, one can square the Mean Square Error, and get the *Root Mean Square Error* (RMSE). Moreover, we will use the *Mean Absolute Percentage Error* (MAPE). Theses measures are presented in Table 1. Of course, we want the error measures to be as small as possible. As seen in Table 1, the MSE is ....., the RMSEA is 12 and MAPE is 108.
 
 
 
@@ -243,7 +238,15 @@ Refer to "Table 1."
 
 
 ### Y2
+####Identification
+In Graph X, the time series *Y2* is plotted. By inspection, there does not seem to be any trend, and the mean and variance look fairly constant. Hence, it seems like the two first requirements for covariance stationarity are fulfilled; a constant mean and variance. Moreover, it does not look like a unit root process, since the ACF is declining. 
+++++Graph 1++++++
 
+Since several different processes might give rise to the realization seen in the time series plot, we also turn to the correlogram. The ACF has several individually significant spikes, and is geometrically decreasing. The PACF has only 1 significant spike. Consequently, we would guess that this is a realization of an AR(1) process. Hence, we have one model that we would like to estimate:
+
+AR(2): $Y_1=\phi_0+\phi_1Y_{t-1}+e_t$
+
+Where the error term $e_t$ is independently and identically distributed with mean 0 and a constant variance.
 ```{r}
 ## Y2 - AR(1)
 layout(matrix(c(1, 1, 2,
@@ -253,6 +256,35 @@ acf(Y2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(Y2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 ```
+
+####Estimation and evaluation of MA(1)
+All models is estimated using the maximum likelihood method.
+
+When estimating the AR(1) model using the data from Y2, it becomes:
+
+AR(2): $Y_1=0.0064-0.87Y_{t-1}+ê_t$
+
+
+Where the Y:s are the observed value of Y in the indexed time period, and $ê_t$ is the residual. COMMENT ON INDIVIDUAL SIGNIFICANCE! To verify whether using this model is any good or not, we perform a residual analysis. If the estimated model has captured all systematic variation properly, the residuals must be uncorrelated and stationary.
+
+Graph X shows the residuals plotted over time, as well as the residual ACF and PACF. When looking at the time series plot, the mean seems to be at 0 and the variance looks constant. The ACF and PACF only has nonsignificant spikes when tested individually. Moreover, the Ljung-Box Test generates a p-value 0.776, which makes us accept the null that all autocorrelations are 0. Hence, all autocorrelations seem to be undistinguishable from 0 on a 5% significance level. Thus we conclude that the residuals of the AR(2) estimation are uncorrelated.
+
+COMMENT ON NORMALITY!? QQ-plot:
+
+Since the residuals seem to be uncorrelated and stationary, the estimated model should be a good approximation of the underlying process.
+
+
+####Forecasting
+When making our forecasts, we are using an estimated AR(1) model. Hence, all predictions of Y2 are made using: 
+
+AR(1): $Ŷ_1=0.0064-0.87Y_{t-1}$
+
+Graph X shows the predicted $Ŷ_t$ after t=400, together with a 95% prediction interval. The predicted values are vary, from around 2 to -1. Moreover, for example at t=401, with 95% confidence, the true values are not bigger than around 3 and not smaller than around 1, etc.
+
+
+In Graph X, we compare the predicted values with the actual, observed, observations. For t=401, t=402 and 403, the actual values do not seem to fall within the prediction interval. Only for t=404 it does. As seen in Table 1, MSE is 6.95, RMSE is 2.64 and MAPE is 403.
+
+
 
 ```{r}
 
@@ -267,6 +299,16 @@ E2 <- residuals(m2)
 
 
 ### Y3
+####Identification
+In Graph X, the time series *Y3* is plotted. By inspection, there is no obvious trend, and the mean and variance look fairly constant. Hence, it seems like the two first requirements for covariance stationarity are fulfilled; a constant mean and variance. Moreover, it does not look like a unit root process, since the ACF is declining. This is important to note since we cannot estimate a nonstationary process.
+
+
+To find out exactly which underlying process we have, we also turn to the correlogram. The ACF has 2 individually significant spikes, and is decreasing. The PACF has more significant spikes, and is gemoetrically decreasing. Consequently, we would guess that this is a realization of an MA(2) process. Hence, we have one model that we would like to estimate:
+
+MA(2): $Y_1=\theta_0+\theta_1e_{t-1}++\theta_2e_{t-2}+e_t$
+
+Where $e_t$ is independently and identically distributed with mean 0 and a constant variance.
+
 
 ```{r}
 ## Y3 - MA(2)
@@ -277,6 +319,22 @@ acf(Y3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
 acf(Y3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
 ```
+
+####Estimation and evaluation of MA(1)
+All models is estimated using the maximum likelihood method.
+
+When estimating the MA(1) model using the data from Y3, it becomes:
+
+MA(2): $Y_1=0.014+0.52e_{t-1}-0.0096e_{t-2}+ê_t$
+
+
+Where the Y:s are the observed value of Y in the indexed time period, and $ê_t$ is the residual. COMMENT ON INDIVIDUAL SIGNIFICANCE! To evaluate the estimation model, we perform a residual analysis. If the estimated model has captured all systematic variation properly, the residuals must be uncorrelated and stationary, as before.
+
+Graph X shows the residuals plotted over time, as well as the residual ACF and PACF. When looking at the time series plot, the mean seems to be 0 and the variance looks constant. The ACF and PACF only has nonsignificant spikes when tested individually. Moreover, the Ljung-Box Test generates a p-value 0.771, which makes us accept the null. Hence, all autocorrelations seem to be undistinguishable from 0 on a 5% significance level. Thus we conclude that the residuals of the MA(2) estimation indeed are uncorrelated.
+
+COMMENT ON NORMALITY!? QQ-plot:
+
+Since the residuals seem to be uncorrelated and stationary, the estimated model should be a good approximation of the underlying process.
 
 ```{r}
 
@@ -289,6 +347,28 @@ sigma23 <- m3$sigma2
 E3 <- residuals(m3)
 ```
 
+
+####Forecasting
+When making our forecasts, we are using an estimated MA(2) model. Hence, all predictions of Y3 are made using: 
+
+MA(2): $Ŷ_1=0.014+0.52e_{t-1}-0.0096e_{t-2}$
+
+Graph X shows the predicted $Ŷ_t$ after t=400, together with a 95% prediction interval. The predicted values are all very close to 0, and with a with 95% confidence, the true values are not bigger than around 1 and not smaller than around -1. In Graph X, we compare the predicted values with the actual, observed, observations. We see that the predicted values systematically are higher than the actual ones. Moreover, a large share of the actual observations are outside the prediction interval. As seen in Table 1, MSE is 6.95, RMSE is 2.64 and MAPE is 403.
+
+
+> #MSE
+> (mean((y3-y3_hat)^2))
+[1] 6.953121
+> # RMSE
+> sqrt(mean((y3-y3_hat)^2))
+[1] 2.636877
+> # MAPE
+> mape <- 0
+> for(i in 1:4) {
++   mape <- mape + abs((y3[i] - y3_hat[i])/y3[i])
++ }
+> 100*mean(abs((y3-y3_hat)/y3))
+[1] 402.8682
 
 ### Y4
 
