@@ -1,26 +1,28 @@
 ---
-title: "TimeSeries2"
-output: pdf_document
+title: "Time Series Homework Assignment 2"
+author:
+  - Uppsala University
+  - Department of Statistics
+  - "Course: Time Series, Fall 2019"
+  - "Claes Kock,Yuchong Wu, Emma Gunnarsson"
+date: "29/11/2019"
+output:
+  pdf_document:
+    number_sections: yes
 ---
 
+\newpage
+
+\tableofcontents
+
+\newpage
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, comment=NA)
+knitr::opts_chunk$set(echo = TRUE, comment=NA, echo = FALSE)
 library(knitr)
 library(tidyverse)
 library(aTSA)
-```
-
-# Work with git
-
-```{terminal, eval=FALSE}
-# sync with the latest version
-# Everytime before you start working, please sync with the latest version first.
-# run this two lines of code in terminal line by line (seperately)
-
-git fetch upstream
-git merge upstream/master
-
-# Then please read the message which will be sent back
+library(forecast)
 ```
 
 # Imported data
@@ -45,232 +47,376 @@ Y5 <- as.ts(datm[ , 7])
 ```
 
 
-#Introduction
-
-#Table of contents
-
-## Task 1
-
-### Y1
-####Identification
-In Graph 1, the time series *Y1* is plotted. By inspection, there does not seem to be any trend. The series seems to have a constant mean, somewhere around 0, and also the variance looks fairly constant. Hence, it seems like the two first requirements for covariance stationarity are fulfilled; a constant mean and variance.
-
-++++Graph 1++++++
-
-Some unit root processes do give rise to data that show no obvious trend, although the process indeed has a stochastic trend. In that case, the process is not covariance stationary, but rather *Difference Stationary*. Since we need the data to be covariance stationary in order to proceed to estimation of the model, we must know whether this particular realization is a result of a unit root process. By inspection, it does not look like a unit root process, since such a process has an infinite memory. Hence, in case of a unit root process, we would see little or no decline in the ACF.
 
 
-Several different processes might give rise to the realization seen in the time series plot in Graph 1. To find out more we turn instead to the ACF, where we see three significant spikes, which are decreasing geometrically. Combine this with the looks of the PACF, which has two significant spikes, and one can make a qualified guess which underlying process is generating the data here. It could be an AR(2), since that kind of process indeed has a geometrically decreasing ACF and 2 significant PACF spikes. However, it could also be an ARMA(1,1), if one rather interpretates the PACF as geometrically decreasing. Hence, we have two potentially true models, which we have to evaluate:
 
-AR(2): $Y_1=\phi_0+\phi_1Y_{t-1}+\phi_2Y_{t-2}+e_t$
-ARMA(1,1) $Y_t=\phi_1Y_{t-1}+e_t-\theta_1e_{t-1}$
+# Introduction
 
-In both these cases, the error term $e_t$ is independently and identically distributed with mean 0 and a constant variance.
+In this homework assignment, for task 1, we have 5 time series which have been simulated using one of the stochastic processes in HWA1. For task 2, we have real data. Our task is to evaluate these time series.
+By evaluating these time series, we aim to identify the underlying process, estimate it properly and thereby being able to forecast the process in question. 
+
+We are using the Box-Jenkins approach, which means we are going through four specific steps for each time series; Identification, Estimation and Evaluation, and Forecasting. When identifying the underlying process, we essientially just look at the data and it's underlying autocorreltation structure, and make a qualified guess. When the data shows signs of several different underlying processes, we try all candidates and do estimations and thereafter evaluations of the residuals. 
+
+When applying the Box-Jenkins approach, the data must be (covariance) stationary. Otherwise it does not make any sense to estimate it or forecast it, since the properties of the process change over time. Therefore, comments on stationarity of the data will also be made.
+
+In order to have a good estimated model, the residuals must be uncorrelated stationary. Since we know that all data has been simulated using an error mean 0 and the error variance 1, that is what we should get. Moreover, in order for significance tests to be applicable, we need the residuals to be normally distributed. Therefore, we also check for normailty in the residual analysis.
+
+Partly based on the residual analysis, but also based on (when applicable)  the *Aikake Information Criteria*, we choose the model that seems to do the best job approximating the process. Then, we proceed with forecasting.
+
+In task 2, we download the dataset containing quarterly bilateral exchange rate between EU and other currency and only use the quarterly bilateral exchange rate between EU and SEK. To figure out what type of process, we will use 175 observations. After that, we use the *saved* 6 observations to verify the process.
 
 
-####Estimation and evaluation of AR(2)
+# Task 1
+
+## Y1
+Here, we analyse the time series Y1, following the Box-Jenkins Approach outlined above.
+
+### Identification
+In the Graph *Time Series Y1*, the time series *Y1* is plotted. By inspection, there does not seem to be any trend. The series seems to have a constant mean, somewhere around 0, and also the variance looks fairly constant. Hence, it seems like the two first requirements for covariance stationarity are fulfilled; a constant mean and variance.
+
+
+```{r}
+y_1 <- as.ts(datm[ , 3])
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(y_1, main = "Time Series Y1") # time series plot
+acf(y_1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(y_1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+
+```
+
+
+Some unit root processes do give rise to data that show no obvious trend, although the process indeed has a stochastic trend. In that case, the process is not covariance stationary, but rather *Difference Stationary*. Since we need the data to be covariance stationary in order to proceed, we must know whether this particular realization is a result of a unit root process. By inspection, it does not look like a unit root process, since such a process has an infinite memory. Hence, in case of a unit root process, we would see little or no decline in the ACF.
+
+
+Several different processes might give rise to the realization seen in the time series plot. To find out more we turn instead to the ACF, where we see three significant spikes, which are decreasing geometrically. Combine this with the looks of the PACF, which has two significant spikes, and one can make a qualified guess which underlying process is generating the data here. It could be an AR(2), since that kind of process indeed has a geometrically decreasing ACF and 2 significant PACF spikes. However, it could also be an ARMA(1,1), if one rather interpretates the PACF as geometrically decreasing. Hence, we have two potentially true models, which we have to evaluate:
+
+$$AR(2): Y_1=\phi_0+\phi_1Y_{t-1}+\phi_2Y_{t-2}+e_t$$
+$$ARMA(1,1):  Y_t=\phi_1Y_{t-1}+e_t-\theta_1e_{t-1}$$
+
+In both these cases, the error term $e_t$ is independently and identically distributed with mean 0 and variance 1.
+
+
+### Estimation and evaluation of AR(2)
 All models is estimated using the maximum likelihood method.
 
 When estimating the AR(2) model, it becomes:
 
-AR(2): $Y_{1} = 0.0044-0.77Y_{t-1}-0.20Y_{t-2}+\hat{e}_t$
+$$AR(2): Y_1=0.0044-0.77Y_{t-1}-0.20Y_{t-2}+\hat{e}_1$$
 
 
-Where the values within paranthesis are the standard errors of the estimates, the Y:s are the observed value of Y in the indexed time period, and $\hat{e}_t$ is the residual. COMMENT ON INDIVIDUAL SIGNIFICANCE! To verify whether using this model is any good or not, we perform a *residual analysis*. If the estimated model has captured all systematic variation properly, the residuals must be uncorrelated and stationary.
+Where the Y:s are the observed value of Y in the indexed time period, and $ê_t$ is the residual. $\phi_1=-0.77$ has a t-value of $t=-15$, wich makes it highly significant. $\phi_2=-0.20$ has the t-value -4, which also is significant on at least a 5% significance level (since the sample is large, the t-distribution of the estimates converges into a Z-distribution, which has a critical value of 1.96 on a 5% signifciance level). Hence, there is no indication that any of the two parameters should not be included in the model. However to truly verify whether using this model is any good or not, we perform a *residual analysis*.  If the estimated model has captured all systematic variation properly, the residuals must be uncorrelated and stationary. We also test for normality.
 
-Graph 2 shows the residuals plotted over time, as well as the residual ACF and PACF. When looking at the time series plot, the mean seems to be at 0 and the variance looks constant. In the graph of the ACF, there is one significant spike at k=0. However $\rho_0$ is by construction 1, which makes it unimportant to our analysis. Instead, we look at the spikes where k is equal to or bigger than 1, and we see that they are all nonsignificant. 
+```{r}
+E <- as.ts(datm$E)
+#Guess: AR(2)
+m11 <- arima(y_1, order = c(2, 0, 0))
+sigma211 <- m11$sigma2
+E11 <- residuals(m11)
 
-+++++Graph 2++++++++
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(E11, ylab = "Residuals", col = "blue", main = "Residuals from Fitted AR(2), Y1")
+abline(a = mean(E11), b = 0) 
+abline(a = mean(E11) + sigma211, b = 0, lty="dotted") 
+abline(a = mean(E11) - sigma211, b = 0, lty="dotted") 
+acf(E11, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(E11, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+#Normal?
+qqnorm(E11, main = "QQ-plot, Residuals from Fitted AR(2), Y1")
+
+```
+
+
+The graph *Residuals from Fitted AR(2), Y1* shows the residuals plotted over time, as well as the residual ACF and PACF. When looking at the time series plot, the mean seems to be at 0 and the variance looks constant. In the graph of the ACF, there is one significant spike at k=0. However $\rho_0$ is by construction 1, which makes it unimportant to our analysis. Instead, we look at the spikes where k is equal to or bigger than 1, and we see that they are all nonsignificant. 
 
 Note that when evaluating a spike in relation to the blue dotted significance line in the graph, we essentially perform a Z-test of an individual autocorrelation. This might be problematic, since we expect every 20th test (*by construction* of a Z-test with significance level 5%) to show significance due to pure chance. To avoid this problem, one performs a *Ljung-Box Test*, which simultaneously tests whether one or several of the autocorrelations are nonzero. In this case, we get the p-value 0.693, which makes us accept the null that all autocorrelations are 0. Hence, all autocorrelations seem to be undistinguishable from 0 on a 5% significance level. Thus we conclude that the residuals of the AR(2) estimation are uncorrelated.
 
-COMMENT ON NORMALITY!? QQ-plot:
-+++++Graph 3++++++++
+Moreover, when studying the graph *QQ-plot Residuals from Fitted AR(2), Y1*, we see that the residuals seem to follow the line. Thus, they seem normal.
 
-When comparing this model with the ARMA(1,1) (which we soon will evaluate), one can also look at the so called *Aikaike Information Criteria* (AIC). The AIC for this model is 1113.96. It does not say much on it's own, but below, it will be compared to the AIC of ARMA(1,1)
-
-
-
-####Estimation and evaluation of ARMA(1,1)
-The realization in Graph 1 could perhaps be coming from an ARMA(1,1) process instead. To test this, we first estimate the model to be:
-ARMA(1,1) $$Y_t=0.0045-0.478Y_{t-1}-0.30e_{t-1}+ \hat{e}_{t}$$
-
-COMMENT ON THE MODEL AND ON IT'S p-VALUES!
-
-Graph 3 shows the residual analysis, id est an analysis over $\hat{e}_{t}$. It is remarkably similar to the one using AR(2), in Graph 2. When performing a Ljung-Box test, we get the p-value 0.657. Hence, all autocorrelations are indeed not significant different from 0. COMMENT ON NORMALITY! Consequently, by just studying the time series plots and the autocorrelations, we cannot decide which one of the two models (AR(2) or ARMA(1,1)) that is preferable.
-
-++++Graph 4++++
-
-When deciding which model is the best, one can also look at the so called AIC. The AIC for his model is 1113.98. The differences between the AIC-values in the two different models that we’ve tried here is very small. However the AIC for the AR(2) model is somewhat smaller. Hence, we choose the AR(2) model to proceed with and to perform forecasts. 
-
-++++Notes:+++++
-Box.test(E11, lag = 20, type = c("Ljung-Box"), fitdf = 2)
-qqnorm(E11)
-Box.test(E1, lag = 20, type = c("Ljung-Box"), fitdf = 2)
-qqnorm(E1)
-
-
-####Forecasting
-When making our forecasts, we are using the AR(2) model. Hence, all predictions of Y1 are made using: 
-
-AR(2): $\hat{Y}_1=0.0044-0.77Y_{t-1}-0.20Y_{t-2}$
-
-Graph 5 shows the predicted $\hat{Y}_t$ after t=400, together with a 95% prediction interval. The predicted values are very close to 0, and with 95% confidence, the true values are not bigger than around 1 and not smaller than around -1.
-
-+++++Graph 5++++++
-
-In Graph 6, we compare the predicted values with the actual, observed, observations. It becomes obvious that the absolute values of both $Y_401$, $Y_402$ and $Y_403$ are bigger than 1. Hence, by a first look, the prediction does not seem to be very good. However, the mean of the actual observations must be fairly close to the predicted line.
-
-+++++Graph 6++++++
-
-To evaluate a forecast, there are several measures. The *Mean Square Error* (MSE) gives higher weights to outliers. To get the measure on the right scale, one can square the Mean Square Error, and get the *Root Mean Square Error* (RMSE). Moreover, we will use the *Mean Absolute Percentage Error* (MAPE). Theses measures are presented in Table 1. Of course, we want the error measures to be as small as possible. As seen in Table 1, the MSE is ....., the RMSEA is 12 and MAPE is 108.
+In summary, the residual analysis indicates that the estimated AR(2) model should be a good approximation of the underlying process. However, as stated before, the underlying process *could* also be an ARMA(1,1). We will test this approach below. When comparing estimated models, we look at the so called *Aikaike Information Criteria* (AIC). The AIC for this model is 1113.96. It does not say much on it's own, but below, it will be compared to the AIC of ARMA(1,1)
 
 
 
+### Estimation and evaluation of ARMA(1,1)
+The realization of Y1 shown in the graph above could perhaps be coming from an ARMA(1,1) process instead. To test this, we first estimate the model to be:
 
+$$ARMA(1,1): Y_t=0.0045-0.48Y_{t-1}-0.30e_{t-1}+ \hat{e}_1$$
 
+$\phi_1=-0.48$ has t-value 7, and $\theta_1=-0.30$ has t-value 4, which makes them both (individually) statistically significant on a 5% significance level. 
 
-
-### Y2
-####Identification
-In Graph X, the time series *Y2* is plotted. By inspection, there does not seem to be any trend, and the mean and variance look fairly constant. Hence, it seems like the two first requirements for covariance stationarity are fulfilled; a constant mean and variance. Moreover, it does not look like a unit root process, since the ACF is declining. 
-++++Graph 1++++++
-
-Since several different processes might give rise to the realization seen in the time series plot, we also turn to the correlogram. The ACF has several individually significant spikes, and is geometrically decreasing. The PACF has only 1 significant spike. Consequently, we would guess that this is a realization of an AR(1) process. Hence, we have one model that we would like to estimate:
-
-AR(2): $Y_1=\phi_0+\phi_1Y_{t-1}+e_t$
-
-Where the error term $e_t$ is independently and identically distributed with mean 0 and a constant variance.
 ```{r}
-## Y2 - AR(1)
+#Guess: ARMA(11)
+m1 <- arima(y_1, order = c(1, 0, 1))
+sigma21 <- m1$sigma2
+E1 <- residuals(m1)
+
 layout(matrix(c(1, 1, 2,
                 1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(Y2, main = "Time Series Y2") # time series plot
-acf(Y2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(Y2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+ts.plot(E1, ylab = "Residuals", col = "blue", main = "Residuals from Fitted ARMA(1,1), Y1")
+abline(a = mean(E1), b = 0) # adds horizontal line with mean(E1) as intercept and 0 slope
+abline(a = mean(E1) + sigma21, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E1) - sigma21, b = 0, lty="dotted") # same as above - sigma2
+acf(E1, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(E1, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
 par(mfrow = c(1,1)) # set plot window to default
+qqnorm(E1, main = "QQ-plot, Residuals from Fitted ARMA(1,1), Y1")
 ```
 
-####Estimation and evaluation of MA(1)
-All models is estimated using the maximum likelihood method.
+Graph *Residuals from fitted ARMA(1,1), Y1* shows the residual analysis, id est an analysis over $ê_{t}$. It is remarkably similar to the one using AR(2). When performing a Ljung-Box test, we get the p-value 0.657. Hence, all autocorrelations are indeed not significantly different from 0. Moreover, the QQ-plot indicates normality.
+
+Since the residual analysis are so similar, by looking at them we cannot decide which one of the two models (AR(2) or ARMA(1,1)) that is preferable when estimating and forecasting the time series Y1.
+
+When deciding which model is the best, one can also look at the AIC. The AIC for his model is 1113.98. The differences between the AIC-values in the two different models that we’ve tried here is very small. However the AIC for the AR(2) model is somewhat smaller. Hence, we choose the AR(2) model to proceed with and to perform forecasts. 
+
+
+
+
+### Forecasting
+When making our forecasts, we are using the AR(2) model. Hence, all predictions of Y1 are made using: 
+
+$$AR(2): \hat{Y}_1=0.0044-0.77Y_{t-1}-0.20Y_{t-2}$$
+
+```{r}
+y_1_pred <- predict(object = m11, n.ahead = 4)
+ts.plot(y_1_pred$pred, y_1_pred$pred + y_1_pred$se, 
+        y_1_pred$pred - y_1_pred$se, ylab = "Predicted Y", 
+        main = expression(paste("Predicted ", Y['1'])),
+        lty=c(1:3),
+        col = c("blue", "black", "black"))
+# compare fitted and actual
+ts.plot(datf$Y1, y_1_pred$pred, col = c("red", "blue"))
+# x & y need to be adjusted manually. A good idea is to take min(x) and add 1 as x - coordinate
+# and max y remove 1 as y coordinate. Then fine tune 
+legend(x = 401, y = 2, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
+```
+
+
+The graphs show the predicted $\hat{Y}_t$, using the AR(2) model on the time series Y1. In the first graph, we see the prediction interval, and in the second, the predicted values are compared to the actual observations. The predicted values are very close to 0, and with 95% confidence, the true values are not bigger than around 1 and not smaller than around -1. It becomes obvious that the absolute (actual) values of both $Y_401$, $Y_402$ and $Y_403$ are bigger than 1. Hence, by a first look, the prediction does not seem to be very good. However, the mean of the actual observations must be fairly close to the predicted line.
+
+To evaluate a forecast, there are several measures. The *Mean Square Error* (MSE) gives high weights to outliers. To get the measure on the right scale, one can square the MSE, and get the *Root Mean Square Error* (RMSE). Moreover, we will use the *Mean Absolute Percentage Error* (MAPE). These measures are presented in Table 1. Of course, we want the error measures to be as small as possible. As seen in Table 1, the MSE is 4.33, the RMSEA is 12 and MAPE is 108.
+
+
+
+\newpage
+
+
+
+## Y2
+Here, we analyse the time series Y2, following the Box-Jenkins Approach.
+
+
+### Identification
+In the graph *Time Series Y2*, the time series *Y2* is plotted. By inspection, there does not seem to be any trend, and the mean and variance look fairly constant. Hence, it seems like the two first requirements for covariance stationarity are fulfilled; a constant mean and variance. Moreover, it does not look like a unit root process, since the ACF is declining as the number of lags is increasing. 
+
+```{r}
+y_2 <- as.ts(datm[ , 4])
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(y_2, main = "Time Series Y2") # time series plot
+acf(y_2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(y_2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+
+```
+
+
+Since several different processes might give rise to the this realization, we also turn to the correlogram. The ACF has several individually significant spikes, and is geometrically decreasing. The PACF has only 1 significant spike. Consequently, we would guess that this is a realization of an AR(1) process. Hence, we have one model that we would like to estimate:
+
+$$AR(1): Y_1=\phi_0+\phi_1Y_{t-1}+e_t$$
+
+Where the error term $e_t$ is independently and identically distributed with mean 0 and a constant variance.
+
+
+
+### Estimation and evaluation of AR(1)
+All models are estimated using the maximum likelihood method.
 
 When estimating the AR(1) model using the data from Y2, it becomes:
 
-AR(2): $Y_1=0.0064-0.87Y_{t-1}+\hat{e}_t$
+$$AR(1): Y_1=0.0064-0.87Y_{t-1}+\hat{e}_1$$
+
+Where the Y:s are the observed value of Y in the indexed time period, and $ê_t$ is the residual. $\phi_1=-0.87$ has the t-value 35, making it highly significant. To verify whether using this model is the best option, we perform a residual analysis. If the estimated model has captured all systematic variation properly, the residuals must be uncorrelated and stationary.
 
 
-Where the Y:s are the observed value of Y in the indexed time period, and $\hat{e}_t$ is the residual. COMMENT ON INDIVIDUAL SIGNIFICANCE! To verify whether using this model is any good or not, we perform a residual analysis. If the estimated model has captured all systematic variation properly, the residuals must be uncorrelated and stationary.
+```{r}
+#GUESS: AR(1)
+m2 <- arima(y_2, order = c(1, 0 , 0))
+sigma22 <- m2$sigma2
+E2 <- residuals(m2)
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(E2, ylab = "Residuals", col = "blue", main = "Residuals from Fitted AR(1), Y2")
+abline(a = mean(E2), b = 0) 
+abline(a = mean(E2) + sigma22, b = 0, lty="dotted") 
+abline(a = mean(E2) - sigma22, b = 0, lty="dotted")
+acf(E2, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(E2, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+#Normal?
+qqnorm(E2, main = "QQ-plot, Residuals from Fitted AR(1), Y2")
 
-Graph X shows the residuals plotted over time, as well as the residual ACF and PACF. When looking at the time series plot, the mean seems to be at 0 and the variance looks constant. The ACF and PACF only has nonsignificant spikes when tested individually. Moreover, the Ljung-Box Test generates a p-value 0.776, which makes us accept the null that all autocorrelations are 0. Hence, all autocorrelations seem to be undistinguishable from 0 on a 5% significance level. Thus we conclude that the residuals of the AR(2) estimation are uncorrelated.
+```
 
-COMMENT ON NORMALITY!? QQ-plot:
+Graph *Residuals from Fitted AR(1), Y2* shows the residuals plotted over time, as well as the residual ACF and PACF. When looking at the time series plot, the mean seems to be at 0 and the variance looks constant. The ACF and PACF only has nonsignificant spikes when tested individually. Moreover, the Ljung-Box Test generates a p-value 0.776, which makes us accept the null that all autocorrelations are 0. Hence, all autocorrelations seem to be undistinguishable from 0 on a 5% significance level. Thus we conclude that the residuals of the AR(1) estimation are uncorrelated.
 
 Since the residuals seem to be uncorrelated and stationary, the estimated model should be a good approximation of the underlying process.
 
 
-####Forecasting
+### Forecasting
 When making our forecasts, we are using an estimated AR(1) model. Hence, all predictions of Y2 are made using: 
 
-AR(1): $\hat{Y}_1=0.0064-0.87Y_{t-1}$
-
-Graph X shows the predicted $\hat{Y}_t$ after t=400, together with a 95% prediction interval. The predicted values are vary, from around 2 to -1. Moreover, for example at t=401, with 95% confidence, the true values are not bigger than around 3 and not smaller than around 1, etc.
+$$AR(1): \hat{Y}_1=0.0064-0.87Y_{t-1}$$
 
 
-In Graph X, we compare the predicted values with the actual, observed, observations. For t=401, t=402 and 403, the actual values do not seem to fall within the prediction interval. Only for t=404 it does. As seen in Table 1, MSE is 6.95, RMSE is 2.64 and MAPE is 403.
-
-
-
+The first graph in *Predicted Y2* shows the predicted $\hat{Y}_t$ for Y2 using the AR(1) model, with a 95% prediction interval. The second graph compare the predicted values with the actual observations. The predicted values vary, from around 2 to -1. Moreover, for example at t=401, with 95% confidence, the true values are not bigger than around 3 and not smaller than around 1, etc.
 ```{r}
-
-## removing residuals from fitted model
-
-### Y2
-?arima
-m2 <- arima(Y2, order = c(1, 0 , 0))
-sigma22 <- m2$sigma2
-E2 <- residuals(m2)
+y_2_pred <- predict(object = m2, n.ahead = 4)
+ts.plot(y_2_pred$pred, y_2_pred$pred + y_2_pred$se, 
+        y_2_pred$pred - y_2_pred$se, ylab = "Predicted Y", 
+        main = expression(paste("Predicted ", Y['2'])), # we can use mathematical notation in r plots!
+        lty=c(1:3),
+        col = c("blue", "black", "black"))
+# compare fitted and actual
+ts.plot(datf$Y2, y_2_pred$pred, col = c("red", "blue"))
+# x & y need to be adjusted manually. A good idea is to take min(x) and add 1 as x - coordinate
+# and max y remove 1 as y coordinate. Then fine tune 
+legend(x = 401, y = 2, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
 ```
 
 
-### Y3
-####Identification
-In Graph X, the time series *Y3* is plotted. By inspection, there is no obvious trend, and the mean and variance look fairly constant. Hence, it seems like the two first requirements for covariance stationarity are fulfilled; a constant mean and variance. Moreover, it does not look like a unit root process, since the ACF is declining. This is important to note since we cannot estimate a nonstationary process.
+When comparing the predicted values with the actual, observed, observations. For t=401, t=402 and 403, the actual values do not seem to fall within the prediction interval. Only for t=404 it does. As seen in Table 1, MSE is 6.95, RMSE is 2.64 and MAPE is 403.
 
+
+\newpage
+
+
+## Y3
+Here, we analyse the time series Y2, following the Box-Jenkins Approach, id est Identifications, Estimation and Evaluation, and Forecasting.
+
+### Identification
+In the graph *Time Series Y3*, the time series *Y3* is plotted. By inspection, there is no obvious trend, and the mean and variance look fairly constant. Hence, it seems like the two first requirements for covariance stationarity are fulfilled; a constant mean and variance. Moreover, it does not look like a unit root process, since the ACF is declining. This is important to note since we cannot estimate a nonstationary process.
+
+```{r}
+y_3 <- as.ts(datm[ , 5])
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(y_3, main = "Time Series Y3") # time series plot
+acf(y_3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(y_3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+
+```
 
 To find out exactly which underlying process we have, we also turn to the correlogram. The ACF has 2 individually significant spikes, and is decreasing. The PACF has more significant spikes, and is gemoetrically decreasing. Consequently, we would guess that this is a realization of an MA(2) process. Hence, we have one model that we would like to estimate:
 
-MA(2): $Y_1=\theta_0+\theta_1e_{t-1}++\theta_2e_{t-2}+e_t$
+$$MA(2): Y_1=\theta_0+\theta_1e_{t-1}+\theta_2e_{t-2}+e_t$$
 
 Where $e_t$ is independently and identically distributed with mean 0 and a constant variance.
 
 
-```{r}
-## Y3 - MA(2)
-layout(matrix(c(1, 1, 2,
-                1, 1, 3), nrow=2, byrow=TRUE)) 
-ts.plot(Y3, main = "Time Series Y3") # time series plot
-acf(Y3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
-acf(Y3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
-par(mfrow = c(1,1)) # set plot window to default
-```
 
-####Estimation and evaluation of MA(1)
+
+### Estimation and evaluation of MA(2)
 All models is estimated using the maximum likelihood method.
 
-When estimating the MA(1) model using the data from Y3, it becomes:
+When estimating the MA(2) model using the data from Y3, it becomes:
 
-MA(2): $Y_1=0.014+0.52e_{t-1}-0.0096e_{t-2}+\hat{e}_t$
+$$MA(2): Y_1=0.014+0.52e_{t-1}-0.0096e_{t-2}+\hat{e}_1$$
 
 
-Where the Y:s are the observed value of Y in the indexed time period, and $\hat{e}_t$ is the residual. COMMENT ON INDIVIDUAL SIGNIFICANCE! To evaluate the estimation model, we perform a residual analysis. If the estimated model has captured all systematic variation properly, the residuals must be uncorrelated and stationary, as before.
+Where the Y:s are the observed value of Y in the indexed time period, and $ê_t$ is the residual.$\theta_1=0.52$ has a t-value 10, making the estimate highly significant. However $\theta_2=-0.0096$ has the t-value 0.19, making it highly *insignificant*. This could be an indication that $\theta_2$ really should not be included in the model. One obvious alternative would be to simply drop it and thereby use an MA(1) instead. If we truly have an MA(1) process, the spike in the autocorrelation function of Y2 would be significant just by pure chance. The chances are perhaps not that high, but since it *could* be the case, we will estimate and evaluate an MA(1) process as well.
 
-Graph X shows the residuals plotted over time, as well as the residual ACF and PACF. When looking at the time series plot, the mean seems to be 0 and the variance looks constant. The ACF and PACF only has nonsignificant spikes when tested individually. Moreover, the Ljung-Box Test generates a p-value 0.771, which makes us accept the null. Hence, all autocorrelations seem to be undistinguishable from 0 on a 5% significance level. Thus we conclude that the residuals of the MA(2) estimation indeed are uncorrelated.
+But first, we evaluate the MA(2) model by performing a residual analysis.
 
-COMMENT ON NORMALITY!? QQ-plot:
+```{r}
+#GUESS: MA(2)
+m3 <- arima(y_3, order = c(0, 0 , 2))
+sigma23 <- m3$sigma2
+E3 <- residuals(m3)
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(E3, ylab = "Residuals", col = "blue", main = "Residuals from Fitted MA(2), Y3")
+abline(a = mean(E3), b = 0)
+abline(a = mean(E3) + sigma23, b = 0, lty="dotted")
+abline(a = mean(E3) - sigma23, b = 0, lty="dotted")
+acf(E3, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(E3, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+qqnorm(E3, main = "QQ-plot, Residuals from Fitted MA(2), Y3")
+```
+
+
+The graph *Residuals from Fitted MA(2), Y3* shows the residuals plotted over time, as well as the residual ACF and PACF. When looking at the time series plot, the mean seems to be 0 and the variance looks constant. The ACF and PACF only has nonsignificant spikes when tested individually. Moreover, the Ljung-Box Test generates a p-value 0.771, which makes us accept the null. Hence, all autocorrelations seem to be undistinguishable from 0 on a 5% significance level. Thus we conclude that the residuals of the MA(2) estimation indeed are uncorrelated. Moreover, the QQ-plot indicates normality.
 
 Since the residuals seem to be uncorrelated and stationary, the estimated model should be a good approximation of the underlying process.
 
+
+
+### Estimation and evaluation of MA(1)
+Since $\theta_2$ was nonsignificant when estimating the MA(2) model above, we estimate and evaluate the MA(1) model as well. The model to be estimated hence is:
+
+$$MA(1): Y_1=\theta_0+\theta_1e_{t-1}+e_t$$
+
+Which is estimated to:
+$$MA(1) :  Y_1=0.014+0.5214e_{t-1}+\hat{e}_1$$
+
+Here, $\theta_1=0.521$ has the t-value 11, which is highly significant.
+
 ```{r}
-
-## removing residuals from fitted model
-
-### Y3
-?arima
-m3 <- arima(Y3, order = c(0, 0 , 2))
-sigma23 <- m3$sigma2
-E3 <- residuals(m3)
+#GUESS: MA(1)
+m31 <- arima(y_3, order = c(0, 0 , 1))
+sigma231 <- m31$sigma2
+E31 <- residuals(m31)
+layout(matrix(c(1, 1, 2,
+                1, 1, 3), nrow=2, byrow=TRUE)) 
+ts.plot(E31, ylab = "Residuals", col = "blue", main = "Residuals from Fitted MA(1), Y3")
+abline(a = mean(E31), b = 0) # adds horizontal line with mean(E3) as intercept and 0 slope
+abline(a = mean(E31) + sigma231, b = 0, lty="dotted") # same as above + sigma2
+abline(a = mean(E31) - sigma231, b = 0, lty="dotted") # same as above - sigma2
+acf(E31, lag.max = 20, type = "correlation", plot = T, main = "ACF") # ACF
+acf(E31, lag.max = 20, type = "partial", plot = T, main = "PACF") # PCAF
+par(mfrow = c(1,1)) # set plot window to default
+qqnorm(E31, main = "QQ-plot, Residuals from Fitted MA(1), Y3")
 ```
 
 
-####Forecasting
-When making our forecasts, we are using an estimated MA(2) model. Hence, all predictions of Y3 are made using: 
-
-MA(2): $\hat{Y}_1=0.014+0.52e_{t-1}-0.0096e_{t-2}$
-
-Graph X shows the predicted $\hat{Y}_t$ after t=400, together with a 95% prediction interval. The predicted values are all very close to 0, and with a with 95% confidence, the true values are not bigger than around 1 and not smaller than around -1. In Graph X, we compare the predicted values with the actual, observed, observations. We see that the predicted values systematically are higher than the actual ones. Moreover, a large share of the actual observations are outside the prediction interval. As seen in Table 1, MSE is 6.95, RMSE is 2.64 and MAPE is 403.
+The residual analysis is promising; mean and variance seems constant when studying the time series plot. Moreover, there does not seem to be any significant spikes in the ACF or in the PACF. When performing a Ljung-Box Test, the p-value is 0.763, which indicated that all 20 first autocorrelations indeed are indistinguishable from 0. Moreover, the QQ-plot indicates normality. It actually seems like this model, just as the MA(2), generates stationary and uncorrelated residuals. Hence, we turn to the AIC values, to decide which model we should base our predictions upon. The AIC for the MA(1) is 1113.73, and for the MA(2) it is 1115.69. Thus, we choose to proceed with the MA(1) model.
 
 
-> #MSE
-> (mean((y3-y3_hat)^2))
-[1] 6.953121
-> # RMSE
-> sqrt(mean((y3-y3_hat)^2))
-[1] 2.636877
-> # MAPE
-> mape <- 0
-> for(i in 1:4) {
-+   mape <- mape + abs((y3[i] - y3_hat[i])/y3[i])
-+ }
-> 100*mean(abs((y3-y3_hat)/y3))
-[1] 402.8682
 
-\newpage
+### Forecasting
+When making our forecasts, we are using the estimated MA(1) model. Hence, all predictions of Y3 are made using: 
 
-### Y4
+$$MA(1):  \hat{Y}_1=0.014+0.5214e_{t-1}$$
+
+
+The first graph in *Predicted Y3* shows the predicted $\hat{Y}_t$ for Y3, with a 95% prediction interval, and the second compare the predicted values with the actual observations. The predicted values are all very close to 0, and with 95% confidence, the true values are not bigger than around 1 and not smaller than a bit less than -1.
+```{r}
+y_3_pred <- predict(object = m31, n.ahead = 4)
+ts.plot(y_3_pred$pred, y_3_pred$pred + y_3_pred$se, 
+        y_3_pred$pred - y_3_pred$se, ylab = "Predicted Y", 
+        main = expression(paste("Predicted ", Y['3'])), 
+        lty=c(1:3),
+        col = c("blue", "black", "black"))
+# compare fitted and actual
+ts.plot(datf$Y3, y_3_pred$pred, col = c("red", "blue"))
+legend(x = 401, y = 2, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
+```
+
+
+When comparing the predicted values with the actual, observed, observations, we see that the predicted values systematically are higher than the actual ones. However, most of the actual observations are within the prediction interval. As seen in Table 1, MSE is 1.85, RMSE is 1.36 and MAPE is 99.
+
+
+
+
+## Y4
 
 Here we are going to analyze the dataset Y4. As with the other datasets, we will use the Box-Jenkins approach.
 
-#### Indentification
+### Indentification
 
 ```{r} 
 y_4 <- as.ts(datm[ , 6])
@@ -287,7 +433,7 @@ par(mfrow = c(1,1)) # set plot window to default
 
 Looking at our model, we can see that it looks centered around zero. It  looks fairly consistent in mean and variance. The ACF seems to be declining in a geometric fashion. The PACF has two "fingers". This leads us to suspect this is a AR-process of the second order, or AR(2).
 
-#### Estimation
+### Estimation
 
 ```{r}
 ### y_4
@@ -305,7 +451,7 @@ $$\sigma^2 = 0.9271$$
 
 So our model is $$Y_{4} = 0.0174-0,282Y_{t-1} + 0.568Y_{t-2} + e_t$$
 
-#### Evaluation
+### Evaluation
 
 We begin by extracting the residuals. When we have done this we plot the residuals to check if the model has managed to capture the systematic variation.
 
@@ -329,7 +475,7 @@ par(mfrow = c(1,1)) # set plot window to default
 
 ```
 
-The plot of the residuals looks like white noise, with no pattern or trend. Both the ACF and PACF are equal to zero, which they should be since the residuals are randomness. Does, it seems like we have managed to separate the systematic and random variation.
+The plot of the residuals looks like white noise, with no pattern or trend. Mean and variance seems constant. Both the ACF and PACF are equal to zero, which they should be since the residuals are randomness. Thus, it seems like we have managed to separate the systematic and random variation. 
 
 ```{r}
 layout(matrix(c(1, 1, 2,
@@ -340,27 +486,27 @@ abline(a = mean(E4) + sigma24, b = 0, lty="dotted") # same as above + sigma2
 abline(a = mean(E4) - sigma24, b = 0, lty="dotted") # same as above - sigma2
 ```
 
-Here we can see the plot of y_4 in red, with the plot for the residuals superimposed on top, in black. We can see that the residuals do share all their patterns and trends with the plot for y_4.
+Here we can see the plot of Y4 in red, with the plot for the residuals superimposed on top, in black. We can thus compare the two, and see how random the residuals appear to be. We can see that the residual plot does not share the same large variation that Y4 has.
 
 ```{r}
 qqnorm(E4)
 ```
 
-The QQ-plot looks to follow the theoretical values fairly well.
+The QQ-plot seems to indicate normality.
 
 ```{r}
 (e4_acf <- acf(E4, lag.max = 20, type = "correlation", plot = F)) 
 ```
 
-These are the autocorrelations for y_4, lag 0-20.
+These are the autocorrelations for y_4, lag 0-20. We will perform a Ljung-Box test too determine wether they are correlated or not, with the null hypothesis that all autocorrelations are equal to zero.
 
 ```{r}
 Box.test(E4, type="Ljung-Box")
 ```
 
-The p-value of the Box-Ljung test is 0.9317 > 0.05. Thus we can assume that not all autocorrelations are equal to zero for model y_4.
+The p-value of the Box-Ljung test is 0.9317 > 0.05. Thus we can not reject the null hypothesis that all correlation are equal to zero, for model Y4.
 
-#### Forecast
+### Forecast
 
 ```{r}
 (y_4_pred <- predict(object = m4, n.ahead = 4))
@@ -390,7 +536,7 @@ legend(x = 401, y = 0.5, legend = c("actual", "fitted"), col = c("red", "blue"),
 
 ```
 
-These two plots combine the fitted plot with the actual plot. As we can see, they dont match up very well. There must be something that we have failed to capture - the predicted plot doesn't match the actual plot very well. The actual plot doesnt oscillate in the same way that the fitted model does. The actual data seem to start declining at time point 402, and start to recover by time point 403.
+These two plots combine the fitted plot with the actual plot. As we can see, they dont match up very well. There must be something that we have failed to capture - the predicted plot doesn't match the actual plot very well. The actual plot doesnt oscillate in the same way that the fitted model does. The actual data seem to start declining at time point 402, and start to recover by time point 403. Our model feels "ahead" of the actual data - if we could lag it by around 1 step, it might sync better with the data. The models are similar in the way they go between positive and negative values, it's just that the "waves" don't match. The actual data is not as regular as the fitted model, and the "waves" are shallower.
 
 ```{r}
 ### need some measurements of the forecast
@@ -409,13 +555,13 @@ for(i in 1:4) {
 100*mean(abs((y4-y4_hat)/y4))
 ```
 
-From model X, we can see that our MAPE (Mean Absolute Percentage Error) is very high, meaning that according to it we have a high amount of error. This strengthens the suspicion that we might have missed something.
+From model X, we can see that our MAPE (Mean Absolute Percentage Error) is very high, meaning that according to it we have a high amount of error. This strengthens the suspicion that we might have missed something. This means that there might exist a more fitting model which we did not discover.
 
-### Y5
+## Y5
 
 Here we are going to analyze the dataset Y5. As with the other datasets, we will use the Box-Jenkins approach.
 
-#### Indentification
+### Indentification
 
 ```{r}
 Y5 <- as.ts(datm[ , 7])
@@ -430,9 +576,9 @@ par(mfrow = c(1,1)) # set plot window to default
 
 ```
 
-This plot is rather choppy, but seems to be somewhat centered around zero. Its ACF seems to geometrically decline. The PACF seems to have a finger, but also seems to decline. It might be an ARMA, since both ACF and PACF seem to decline. If it is an ARMA, then its AR component is probably AR(2). Its MA component looks like an MA(2), since it has 3 "fingers" above zero, although one looks very close to zero.
+This plot is rather choppy, but seems to be somewhat centered around zero. Its ACF seems to geometrically decline. The PACF seems to have a finger, but also seems to decline. It might be an ARMA, since both ACF and PACF seem to decline. If it is an ARMA, then its AR component is probably AR(2). Its MA component looks like an MA(3), since it has 3 "fingers" above zero, although one looks very close to zero.
 
-#### Estimation
+### Estimation
 
 ```{r}
 ### Y5
@@ -441,6 +587,8 @@ sigma25 <- m5$sigma2
 
 m5
 ```
+
+We estimate the parameters for the ARMA(3,2) process:
 
 $$\phi_{1} = 1.1854$$
 $$\phi_{2} = 0.4455$$
@@ -451,7 +599,7 @@ $$\sigma^2 = 0.9271$$
 
 So our model is $$Y_{5} = 0.0339+1.1854Y_{t-1} + 0.4455Y_{t-2} - 0.0729e_{t-1} - 0.2049e_{t-2} + 0.1176e_{t-3} + e_t$$
 
-#### Evaluation
+### Evaluation
 ```{r}
 ## removing residuals from fitted model
 E5 <- residuals(m5)
@@ -475,7 +623,7 @@ par(mfrow = c(1,1)) # set plot window to default
 
 ```
 
-From the residuals we have extracted, we see no evidance against our assumptions regarding what kind of model we have. Both the ACF and PACF are zero, and the plot is centered around zero.
+From the residuals we have extracted, we see no evidence against our assumptions regarding what kind of model we have. Both the ACF and PACF are zero, and the plot is centered around zero. Mean and variance looks constant.
 
 ```{r}
 layout(matrix(c(1, 1, 2,
@@ -486,7 +634,7 @@ abline(a = mean(E4) + sigma24, b = 0, lty="dotted") # same as above + sigma2
 abline(a = mean(E4) - sigma24, b = 0, lty="dotted") # same as above - sigma2
 ```
 
-We can see that the residuals share some things with Y5, but are not distributed in the same way. The residual plot doesnt have the same choppyness, and seem to be more centered around zero, as well as being spread across a smaller interval.
+We can see that the residuals share some things with y_5, but are not distributed in the same way. The residual plot doesnt have the same choppyness, and seem to be more centered around zero, as well as being spread across a smaller interval.
 
 ```{r}
 qqnorm(E5)
@@ -500,9 +648,9 @@ The QQ-plot looks approximatly correct, due to the fact that most of the values 
 Box.test(E5, lag = 20)
 ```
 
-Here we have the correlations for Y5, lags 0-20, as well as a Box-Jenkins test. The results from the test indicate that not all correlations are effectivly zero.
+Here we have the correlations for Y5, lags 0-20, as well as a Box-Jenkins test. The p-value of the Box-Ljung test is 0.9388 > 0.05. Thus we can not reject the null hypothesis that all autocorrelations are equal to zero, for model Y5.
 
-#### Forecast
+### Forecast
 
 ```{r}
 (y_5_pred <- predict(object = m5, n.ahead = 4))
@@ -510,6 +658,7 @@ Here we have the correlations for Y5, lags 0-20, as well as a Box-Jenkins test. 
 ```
 
 Here we see the predicted values for Y5 for the numbers 401-404, with Y5 originally ending at 400. The predicted values seem to start as negative values, at around -0.58, but seem to become less negative with each time point, as t=404 is -0.156. The predicted standard error seems to be very large in comparison with the predicted values.
+
 
 ```{r}
 ### Predicted Y5
@@ -533,7 +682,7 @@ legend(x = 400.9, y = 0.1, legend = c("actual", "fitted"), col = c("red", "blue"
 
 ```
 
-From the above plot we can conclude that our prediction of t =401-404 does not estimate the actual values of the series Y5. The actual plot seems to go in the same direction as the predicted data until it hits time point 402, after which it keeps declining. We saw a similar trend in Y4. 
+From the above plot we can conclude that our prediction of t =401-404 does not estimate the actual values of the series Y5. The actual plot seems to go in the same direction as the predicted data until it hits time point 402, after which it keeps declining. We saw a similar trend in Y4. If it would continue to grow after 402 then the prediction would be a far better match.
 
 ```{r}
 ### need some measurements of the forecast
@@ -552,7 +701,67 @@ for(i in 1:4) {
 100*mean(abs((y5-y5_hat)/y5))
 ```
 
+An MAPE of ca 83 is fairly high, but not as high as the MAPE that Y4 had. This means that the mean absolute percentage error is smaller here compared to Y4. That said 83 still seems high. Overall we feel that Y5 could have been explained by a better model.
+
+```{r}
+y1 <- as.vector(datf$Y1)
+y1_hat <- as.vector(y_1_pred$pred)
+
+y2 <- as.vector(datf$Y2)
+y2_hat <- as.vector(y_2_pred$pred)
+
+y3 <- as.vector(datf$Y3)
+y3_hat <- as.vector(y_3_pred$pred)
+
+y4 <- as.vector(datf$Y4)
+y4_hat <- as.vector(y_4_pred$pred)
+
+y5 <- as.vector(datf$Y5)
+y5_hat <- as.vector(y_5_pred$pred)
+
+
+#Estimators Y1
+sqrt1 = sqrt(mean((y1-y1_hat)^2))
+mean1 = mean(abs(y1-y1_hat))
+mape1 = 100*mean(abs((y1-y1_hat)/y1))
+
+#Estimators Y2
+sqrt2 = sqrt(mean((y2-y2_hat)^2))
+mean2 = mean(abs(y2-y2_hat))
+mape2 = 100*mean(abs((y2-y2_hat)/y2))
+
+#Estimators Y3
+sqrt3 = sqrt(mean((y3-y3_hat)^2))
+mean3 = mean(abs(y3-y3_hat))
+mape3 = 100*mean(abs((y3-y3_hat)/y3))
+
+#Estimators Y4
+sqrt4 = sqrt(mean((y4-y4_hat)^2))
+mean4 = mean(abs(y4-y4_hat))
+mape4 = 100*mean(abs((y4-y4_hat)/y4))
+
+#Estimators Y5
+sqrt5 = sqrt(mean((y5-y5_hat)^2))
+mean5 = mean(abs(y5-y5_hat))
+mape5 = 100*mean(abs((y5-y5_hat)/y5))
+
+```
+
+## Table 1: Forecast error measures for models Y1-Y5
+
+```{r}
+data.frame(Data = c("Y1", "Y2", "Y3", "Y4", "Y5"),
+           Models = c("AR(2)", "AR(1)", "MA(1)", "AR(2)","ARMA(3,2)"),
+           MSE = c(sqrt1,sqrt2,sqrt3,sqrt4,sqrt5),
+           RMSE = c(mean1,mean2,mean3,mean4,mean5),
+           MAPE = c(mape1,mape2,mape3,mape4,mape5)) %>% 
+  kable(caption = "Table1: Forecast error measures Y1-Y5", digits = 2)
+```
+
+
 # Task 2
+
+In task 2, we download the dataset containing quarterly bilateral exchange rate between EU and other currency and only use the quarterly bilateral exchange rate between EU and SEK. To figure out what type of process, we will use 175 observations. After that, we use the *saved* 6 observations to verify the process.
 
 ## Import dataset
 
@@ -584,7 +793,7 @@ y_m = y[1:175]
 y_f = y[176:181]
 ```
 
-The first step that is to determine what type of process that generated my observed 190 observations.
+The first step that is to determine what type of process using 175 observations.
 
 ## Identify the model
 
@@ -608,7 +817,6 @@ According to the outcome of the test, we **can not reject** the null hypothesis 
 To get discarded of the unit root we take the second difference of the time series. 
 
 ```{r}
-y_m
 y_m_dif = diff(y_m)
 ```
 
@@ -659,7 +867,6 @@ To do the diagnostics, we perform a test that there is no correlation between th
 ## Forecast
 
 ```{r}
-y_1_pred <- predict(object = m11, n.ahead = 4)
 y_m_pred <- predict(object = m1, n.ahead = 6)
 ts.plot(y_m_pred$pred, y_m_pred$pred + y_m_pred$se, 
         y_m_pred$pred - y_m_pred$se, ylab = "Predicted Y", 
@@ -673,44 +880,149 @@ ts.plot(y_f, y_m_pred$pred, col = c("red", "blue"))
 legend(x = 176, y = 10, legend = c("actual", "fitted"), col = c("red", "blue"), lty=c(1,1))
 ```
 
-### Measurements of the forecast
+As can be seen in the plot, the point forecast for any time in the future is always the same, which meets our expectation for the reason that our process is a random walk. Thus, we can not exactly predict if the exchange rate will continue to rise or not in the future, which indicates that economic data can be quite hard to predict. As the professor says, There is no way for you to forecast the exchange rate using the approach of time series and you are not the first one to try it.
+
+## Measurements of the forecast
 
 ```{r}
 y1 <- y_f # no real need for these to be time series objects...
 y1_hat <- y_m_pred$pred # ... so just store them as your plain vanilla vectors :)
-#MSE
-(mean((y1-y1_hat)^2))
+# MSE
+MSE = (mean((y1-y1_hat)^2))
 # RMSE
-sqrt(mean((y1-y1_hat)^2))
+RMSE = sqrt(mean((y1-y1_hat)^2))
 # MAPE
-mape <- 0
-for(i in 1:4) {
-  mape <- mape + abs((y1[i] - y1_hat[i])/y1[i])
-}
-100*mean(abs((y1-y1_hat)/y1))
+MAPE = 100*mean(abs((y1-y1_hat)/y1))
 ```
+
+Then we do the evaluation for the forcast and figure out the evalution measures using the estimated process and the data we "saved" before.
+
+And we find out MSE = `r MSE`, RMSE = `r RMSE`, MAPE = `r MAPE`.
 
 ## Optional part
 
 It might be the case that some model will provide better forecasts (than the one chosen in the identification/specification stage), even though it will not be the model of best choice, using the criteria used in the identification/specification stage. 
 
 ```{r}
+MSE = NULL
+RMSE = NULL
+MAPE = NULL
+
 m1 <- arima(y_m, order = c(0, 1, 0))
+sigma2 = m1$sigma2
+E1 <- residuals(m1)
+y_m_pred <- predict(object = m1, n.ahead = 6)
+y1 <- y_f # no real need for these to be time series objects...
+y1_hat <- y_m_pred$pred # ... so just store them as your plain vanilla vectors :)
+# MSE
+MSE = c(MSE, mean((y1-y1_hat)^2))
+# RMSE
+RMSE = c(RMSE, sqrt(mean((y1-y1_hat)^2)))
+# MAPE
+MAPE = c(MAPE, 100*mean(abs((y1-y1_hat)/y1)))
+
+m1 <- arima(y_m, order = c(1, 1, 0))
+sigma2 = m1$sigma2
+E1 <- residuals(m1)
+y_m_pred <- predict(object = m1, n.ahead = 6)
+y1 <- y_f # no real need for these to be time series objects...
+y1_hat <- y_m_pred$pred # ... so just store them as your plain vanilla vectors :)
+# MSE
+MSE = c(MSE, mean((y1-y1_hat)^2))
+# RMSE
+RMSE = c(RMSE, sqrt(mean((y1-y1_hat)^2)))
+# MAPE
+MAPE = c(MAPE, 100*mean(abs((y1-y1_hat)/y1)))
+
+m1 <- arima(y_m, order = c(0, 1, 1))
+sigma2 = m1$sigma2
+E1 <- residuals(m1)
+y_m_pred <- predict(object = m1, n.ahead = 6)
+y1 <- y_f # no real need for these to be time series objects...
+y1_hat <- y_m_pred$pred # ... so just store them as your plain vanilla vectors :)
+# MSE
+MSE = c(MSE, mean((y1-y1_hat)^2))
+# RMSE
+RMSE = c(RMSE, sqrt(mean((y1-y1_hat)^2)))
+# MAPE
+MAPE = c(MAPE, 100*mean(abs((y1-y1_hat)/y1)))
+
+m1 <- arima(y_m, order = c(2, 1, 0))
+sigma2 = m1$sigma2
+E1 <- residuals(m1)
+y_m_pred <- predict(object = m1, n.ahead = 6)
+y1 <- y_f # no real need for these to be time series objects...
+y1_hat <- y_m_pred$pred # ... so just store them as your plain vanilla vectors :)
+# MSE
+MSE = c(MSE, mean((y1-y1_hat)^2))
+# RMSE
+RMSE = c(RMSE, sqrt(mean((y1-y1_hat)^2)))
+# MAPE
+MAPE = c(MAPE, 100*mean(abs((y1-y1_hat)/y1)))
+
+m1 <- arima(y_m, order = c(0, 1, 2))
+sigma2 = m1$sigma2
+E1 <- residuals(m1)
+y_m_pred <- predict(object = m1, n.ahead = 6)
+y1 <- y_f # no real need for these to be time series objects...
+y1_hat <- y_m_pred$pred # ... so just store them as your plain vanilla vectors :)
+# MSE
+MSE = c(MSE, mean((y1-y1_hat)^2))
+# RMSE
+RMSE = c(RMSE, sqrt(mean((y1-y1_hat)^2)))
+# MAPE
+MAPE = c(MAPE, 100*mean(abs((y1-y1_hat)/y1)))
+
+m1 <- arima(y_m, order = c(1, 0, 0))
+sigma2 = m1$sigma2
+E1 <- residuals(m1)
+y_m_pred <- predict(object = m1, n.ahead = 6)
+y1 <- y_f # no real need for these to be time series objects...
+y1_hat <- y_m_pred$pred # ... so just store them as your plain vanilla vectors :)
+# MSE
+MSE = c(MSE, mean((y1-y1_hat)^2))
+# RMSE
+RMSE = c(RMSE, sqrt(mean((y1-y1_hat)^2)))
+# MAPE
+MAPE = c(MAPE, 100*mean(abs((y1-y1_hat)/y1)))
+
+m1 <- arima(y_m, order = c(0, 0, 1))
+sigma2 = m1$sigma2
+E1 <- residuals(m1)
+y_m_pred <- predict(object = m1, n.ahead = 6)
+y1 <- y_f # no real need for these to be time series objects...
+y1_hat <- y_m_pred$pred # ... so just store them as your plain vanilla vectors :)
+# MSE
+MSE = c(MSE, mean((y1-y1_hat)^2))
+# RMSE
+RMSE = c(RMSE, sqrt(mean((y1-y1_hat)^2)))
+# MAPE
+MAPE = c(MAPE, 100*mean(abs((y1-y1_hat)/y1)))
 ```
+
 
 ```{r}
-data.frame(Models = c(),
-           MSE = ,
-           RMSE = ,
-           MAPE = )
+auto.arima(y[1:175])
 ```
 
-
+To find out the best model, we use the log-likelihood function and figure out that the ARIMA(0,1,0) is the best for this dataset.
 
 ```{r}
-m1 = auto.arima(y[1:175])
+data.frame(Models = c("ARIMA(0,1,0)", "ARIMA(1,1,0)", "ARIMA(0,1,1)", "ARIMA(2,1,0)", "ARIMA(0,1,2)", "ARIMA(1,0,0)", "ARIMA(0,0,1)"),
+           MSE,
+           RMSE,
+           MAPE) %>% 
+  kable(caption = "", digits = 3)
 ```
 
+We see that according to MSE Model 2 and Model 3 are the best while according to the MAPE the model Y is better, however, in a real-life application we need to consider the number of parameters when we estimate the model. We always try to use the simplest model even if the relatively complex model may be a little bit better than the simple one.
+
+
+
+## Conclusion
+In this task, we have had several simulated dataset, where we wanted to identify the underlying stochastic process. First, by studying the time series plot and correlograms, we *identified* possible candidating processes. Then, we *estimated* and *evaluated* them, using maximum likelihood and residual analysis. Finally, we chose the best model and made forecasts. This task has indeed shown the difficulty in identifying processes properly, since several possible processes can be the source of a particualr realization. Moreover, when evaluating the forecasts, we see that they overall are not very good. This could be due to mistakenly identified processes, but also to the fact that forecasts usually *are* wrong. The best we can hope for is to in average predict it right, and never a 100% correct prediction. We indeed see that some of the forecasts on average seem to be right, which would indicate the latter. However a few om the forecasts are systematically too high, which would indicate the former. To evaluate this furhter, we would need to try more models.
+
+# Appendix
 
 
 
@@ -719,9 +1031,27 @@ m1 = auto.arima(y[1:175])
 
 
 
-```{r}
 
-```
-#Conclusions
 
-#Appendix
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Introduction for TASK 2
+
+In task 2, we download the dataset containing quarterly bilateral exchange rate between EU and other currency and only use the quarterly bilateral exchange rate between EU and SEK. To figure out what type of process, we will use 175 observations. After that, we use the *saved* 6 observations to verify the process.
+
+# Conclusion for TASK 2
+
+In task 2, using ACF and PACF plots, we find out ARIMA(0,1,0) might be a good guess and verify via diagnostics after estimation. The point forecast for any time in the future is always the same, which meets our expectation for the reason that our process is a random walk. Thus, we can not exactly predict if the exchange rate will continue to rise or not in the future, which indicates that some of the economic data can be quite hard to predict. Besides, there might be some other models which provide better forecasts but in actual we have to keep a balance between simpleness and effectiveness.
+
+
